@@ -25,3 +25,11 @@ export async function removeGlossaryItem(id: string) {
   const items = await getGlossaryItems();
   await chrome.storage.local.set({ [GLOSSARY_KEY]: items.filter((item) => item.id !== id) });
 }
+
+export function getGlossaryVersion(items: GlossaryItem[]) {
+  return JSON.stringify(
+    [...items]
+      .sort((left, right) => left.id.localeCompare(right.id))
+      .map((item) => [item.source, item.target, item.note ?? '']),
+  );
+}

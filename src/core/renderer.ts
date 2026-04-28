@@ -1,12 +1,19 @@
-import { EXTENSION_SEGMENT_ATTR, EXTENSION_TRANSLATION_ATTR, EXTENSION_TRANSLATION_CLASS } from '@/src/constants';
+import {
+  EXTENSION_SEGMENT_ATTR,
+  EXTENSION_SOURCE_HIDDEN_CLASS,
+  EXTENSION_TRANSLATION_ATTR,
+  EXTENSION_TRANSLATION_CLASS,
+} from '@/src/constants';
+import type { UserSettings } from '@/src/storage/settings-store';
 import type { TranslatedSegment } from '@/src/translation/types';
 
-export function renderTranslations(segments: TranslatedSegment[]) {
+export function renderTranslations(segments: TranslatedSegment[], displayMode: UserSettings['displayMode']) {
   injectStyle();
 
   for (const segment of segments) {
     const source = document.querySelector<HTMLElement>(`[${EXTENSION_SEGMENT_ATTR}="${CSS.escape(segment.id)}"]`);
     if (!source) continue;
+    source.classList.toggle(EXTENSION_SOURCE_HIDDEN_CLASS, displayMode === 'translation-only');
 
     const existing = document.querySelector<HTMLElement>(`[${EXTENSION_TRANSLATION_ATTR}="${CSS.escape(segment.id)}"]`);
     if (existing) {
@@ -35,6 +42,9 @@ function injectStyle() {
       color: #1d4ed8;
       font-size: 0.95em;
       line-height: 1.65;
+    }
+    .${EXTENSION_SOURCE_HIDDEN_CLASS} {
+      display: none !important;
     }
   `;
   document.documentElement.appendChild(style);

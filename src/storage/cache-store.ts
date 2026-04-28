@@ -11,9 +11,13 @@ type CacheItem = TranslatedSegment & {
 const CACHE_KEY = 'autoTTranslationCache';
 const MAX_CACHE_ITEMS = 800;
 
-export async function getCachedTranslation(segment: PageSegment, settings: UserSettings): Promise<TranslatedSegment | null> {
+export async function getCachedTranslation(
+  segment: PageSegment,
+  settings: UserSettings,
+  glossaryVersion: string,
+): Promise<TranslatedSegment | null> {
   const cache = await getCache();
-  const item = cache[getCacheKey(segment, settings)];
+  const item = cache[getCacheKey(segment, settings, glossaryVersion)];
   if (!item) return null;
 
   return {
@@ -23,12 +27,12 @@ export async function getCachedTranslation(segment: PageSegment, settings: UserS
   };
 }
 
-export async function saveCachedTranslations(segments: TranslatedSegment[], settings: UserSettings) {
+export async function saveCachedTranslations(segments: TranslatedSegment[], settings: UserSettings, glossaryVersion: string) {
   const cache = await getCache();
   const now = Date.now();
 
   for (const segment of segments) {
-    const key = getCacheKey({ text: segment.source }, settings);
+    const key = getCacheKey({ text: segment.source }, settings, glossaryVersion);
     cache[key] = {
       ...segment,
       key,
@@ -50,6 +54,12 @@ async function getCache(): Promise<Record<string, CacheItem>> {
   return (result[CACHE_KEY] as Record<string, CacheItem> | undefined) ?? {};
 }
 
-function getCacheKey(segment: Pick<PageSegment, 'text'>, settings: UserSettings) {
-  return [stableTextHash(segment.text), settings.targetLang, settings.sourceLang, settings.mode].join(':');
+function getCacheKey(segment: Pick<PageSegment, 'text'>, settings: UserSettings, glossaryVersion: string) {
+  return [
+    stableTextHash(segment.text),
+    settings.targetLang,
+    settings.sourceLang,
+    settings.mode,
+    stableTextHash(glossaryVersion),
+  ].join(':');
 }

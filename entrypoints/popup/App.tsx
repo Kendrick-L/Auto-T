@@ -1,12 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getSettings, saveSettings } from '@/src/storage/settings-store';
-import type { ExtensionMessage, ExtensionResponse } from '@/src/messaging/messages';
+import type { ExtensionMessage, ExtensionResponse, TranslationProgress } from '@/src/messaging/messages';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 export function App() {
   const [status, setStatus] = useState<Status>('idle');
   const [message, setMessage] = useState('Ready');
+  const [mode, setMode] = useState<'normal' | 'technical' | 'academic'>('normal');
+  const [progress, setProgress] = useState<TranslationProgress | null>(null);
+
+  useEffect(() => {
+    void getSettings().then((settings) => setMode(settings.mode));
+
+    const listener = (message: ExtensionMessage) => {
+      if (message.type !== 'TRANSLATION_PROGRESS') return;
+      setProgress(message.payload);
+      setStatus('loading');
+      setMessage(`Translated ${message.payload.completed}/${message.payload.total} segments`);
+    };
+
+    chrome.runtime.onMessage.addListener(listener);
+    return () => chrome.runtime.onMessage.removeListener(listener);
+  }, []);
 
   async function sendToActiveTab(message: ExtensionMessage) {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -20,6 +36,7 @@ export function App() {
   async function translate(force = false) {
     setStatus('loading');
     setMessage('Translating page...');
+    setProgress(null);
 
     try {
       const settings = await getSettings();
@@ -35,8 +52,9 @@ export function App() {
         throw new Error(response.error);
       }
 
+      const segmentCount = response.data.segments?.length ?? 0;
       setStatus('success');
-      setMessage('Translation complete.');
+      setMessage(segmentCount ? `Translation complete: ${segmentCount} segments.` : 'No translatable text found.');
     } catch (error) {
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'Translation failed.');
@@ -46,6 +64,7 @@ export function App() {
   async function restore() {
     setStatus('loading');
     setMessage('Restoring page...');
+    setProgress(null);
 
     try {
       const response = await sendToActiveTab({ type: 'RESTORE_PAGE' });
@@ -63,6 +82,7 @@ export function App() {
   async function updateMode(mode: 'normal' | 'technical' | 'academic') {
     const settings = await getSettings();
     await saveSettings({ ...settings, mode });
+    setMode(mode);
   }
 
   return (
@@ -88,12 +108,18 @@ export function App() {
 
       <label>
         Mode
-        <select onChange={(event) => updateMode(event.target.value as 'normal' | 'technical' | 'academic')}>
+        <select value={mode} onChange={(event) => updateMode(event.target.value as 'normal' | 'technical' | 'academic')}>
           <option value="normal">Normal</option>
           <option value="technical">Technical</option>
           <option value="academic">Academic</option>
         </select>
       </label>
+
+      {progress ? (
+        <div className="progress" aria-label="Translation progress">
+          <span style={{ width: `${progress.total ? Math.round((progress.completed / progress.total) * 100) : 0}%` }} />
+        </div>
+      ) : null}
 
       <p className={`status ${status}`}>{message}</p>
     </main>

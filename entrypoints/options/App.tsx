@@ -96,6 +96,19 @@ export function App() {
           </select>
         </label>
 
+        <label>
+          Display mode
+          <select
+            value={settings.displayMode}
+            onChange={(event) =>
+              setSettings({ ...settings, displayMode: event.target.value as UserSettings['displayMode'] })
+            }
+          >
+            <option value="bilingual">Bilingual</option>
+            <option value="translation-only">Translation only</option>
+          </select>
+        </label>
+
         <label className="check">
           <input
             type="checkbox"

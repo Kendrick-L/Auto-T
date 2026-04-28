@@ -1,6 +1,7 @@
 import { scanPageSegments } from '@/src/core/dom-scanner';
 import { renderTranslations } from '@/src/core/renderer';
 import { restorePage } from '@/src/core/restore';
+import { getSettings } from '@/src/storage/settings-store';
 import type { ExtensionMessage, ExtensionResponse } from '@/src/messaging/messages';
 
 export default defineContentScript({
@@ -10,6 +11,10 @@ export default defineContentScript({
       (message: ExtensionMessage, _sender, sendResponse: (response: ExtensionResponse) => void) => {
         if (message.type === 'TRANSLATE_PAGE') {
           const segments = scanPageSegments();
+          if (segments.length === 0) {
+            sendResponse({ ok: true, data: { segments: [] } });
+            return false;
+          }
 
           chrome.runtime.sendMessage(
             {
@@ -21,9 +26,10 @@ export default defineContentScript({
                 force: message.payload?.force ?? false,
               },
             } satisfies ExtensionMessage,
-            (response: ExtensionResponse) => {
+            async (response: ExtensionResponse) => {
               if (response.ok && response.data.segments) {
-                renderTranslations(response.data.segments);
+                const settings = await getSettings();
+                renderTranslations(response.data.segments, settings.displayMode);
               }
               sendResponse(response);
             },
