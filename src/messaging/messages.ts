@@ -6,6 +6,7 @@ export type ExtensionMessage =
       type: 'TRANSLATE_PAGE';
       payload?: {
         force?: boolean;
+        scope?: TranslationScope;
       };
     }
   | {
@@ -45,3 +46,5 @@ export type TranslationProgress = {
   currentBatch?: number;
   totalBatches?: number;
 };
+
+export type TranslationScope = 'visible' | 'page';

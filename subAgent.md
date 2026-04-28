@@ -2,7 +2,7 @@
 
 ## 总览
 
-本项目采用主 Agent + 多 subAgent + review agent 的协作模式。每个 subAgent 只能在自己的维护范围内改动，并且必须为每个任务创建独立分支。review agent 负责审查、运行验证命令、确认无问题后推送。
+本项目采用主 Agent + 多 subAgent + review agent 的协作模式。每个 subAgent 只能在自己的维护范围内改动，并且必须为每个任务创建独立开发分支。开发分支先合入阶段分支，阶段完成后再合入 `main`。review agent 负责审查、运行验证命令、确认无问题后推送。
 
 默认远端：
 
@@ -16,45 +16,78 @@ origin git@github.com:Kendrick-L/Auto-T.git
 main
 ```
 
-## 标准工作流
+## Roadmap 分支模型
 
-1. 主 Agent 明确任务、维护范围、验收标准和需要的参数。
-2. subAgent 从最新 `main` 创建任务分支。
-3. subAgent 在限定文件范围内实现并提交。
-4. subAgent 写 handoff，说明改了什么、怎么测、风险是什么。
-5. review agent 切到该分支审查。
-6. review agent 运行必要测试。
-7. 若无问题，review agent 推送分支到 `origin`。
-8. 若有问题，review agent 退回给原 subAgent 或在 review 允许范围内做最小修复。
-
-## 分支规范
-
-每个 subAgent 必须根据任务内容自动创建分支。
-
-格式：
+长期路线使用三层分支：
 
 ```text
-agent/<agent-name>/<short-task-slug>
+main
+stage/<milestone-slug>
+agent/<milestone>/<agent-or-area>/<short-task-slug>
 ```
 
 示例：
 
 ```text
-agent/framework/message-contract
-agent/dom/scanner-filtering
-agent/translation/deepseek-retry
-agent/storage/glossary-version
-agent/ui/popup-progress
-agent/review/dom-scanner-filtering
+stage/m1-mvp-stability
+agent/m1/translation/parser-fallback
+agent/m1/dom/visible-scope
+agent/m1/ui/minimal-popup
+stage/m2-quality
+agent/m2/translation/context-prompt
+```
+
+规则：
+
+- `main` 只接收完整阶段成果。
+- `stage/*` 聚合同一 milestone 下的多个开发分支。
+- `agent/*` 是实际开发分支，每个分支只解决一个清晰任务。
+- 开发分支必须说明为什么存在、解决什么问题、合入哪个阶段分支。
+- review agent 审查开发分支后，将其合入对应 `stage/*`。
+- 阶段验收通过后，review agent 再将 `stage/*` 合入 `main` 并推送。
+
+## 标准工作流
+
+1. 主 Agent 明确任务、维护范围、验收标准和需要的参数。
+2. 主 Agent 确认或创建对应 `stage/*` 阶段分支。
+3. subAgent 从最新阶段分支创建任务分支。
+4. subAgent 在限定文件范围内实现并提交。
+5. subAgent 写 handoff，说明改了什么、怎么测、风险是什么。
+6. review agent 切到该分支审查。
+7. review agent 运行必要测试。
+8. 若有问题，review agent 退回给原 subAgent 或在 review 允许范围内做最小修复。
+9. 若无问题，review agent 推送开发分支到 `origin`。
+10. review agent 将开发分支合入对应阶段分支并推送阶段分支。
+11. 阶段完成后，review agent 将阶段分支合入 `main`。
+
+## 分支规范
+
+每个 subAgent 必须根据任务内容自动创建分支。
+
+开发分支格式：
+
+```text
+agent/<milestone>/<agent-name-or-area>/<short-task-slug>
+```
+
+示例：
+
+```text
+agent/m1/framework/message-contract
+agent/m1/dom/scanner-filtering
+agent/m1/translation/deepseek-retry
+agent/m1/storage/glossary-version
+agent/m1/ui/popup-progress
+agent/m1/review/dom-scanner-filtering
 ```
 
 创建分支：
 
 ```bash
 git fetch origin
-git switch main
-git pull --ff-only origin main
-git switch -c agent/<agent-name>/<short-task-slug>
+git switch stage/<milestone-slug>
+git pull --ff-only origin stage/<milestone-slug>
+git switch -c agent/<milestone>/<agent-name-or-area>/<short-task-slug>
 ```
 
 提交：
@@ -64,10 +97,27 @@ git add .
 git commit -m "<type>: <short summary>"
 ```
 
-推送只由 review agent 执行：
+推送开发分支只由 review agent 执行：
 
 ```bash
-git push -u origin agent/<agent-name>/<short-task-slug>
+git push -u origin agent/<milestone>/<agent-name-or-area>/<short-task-slug>
+```
+
+合入阶段分支：
+
+```bash
+git switch stage/<milestone-slug>
+git merge --no-ff agent/<milestone>/<agent-name-or-area>/<short-task-slug>
+git push origin stage/<milestone-slug>
+```
+
+阶段完成后合入 main：
+
+```bash
+git switch main
+git pull --ff-only origin main
+git merge --no-ff stage/<milestone-slug>
+git push origin main
 ```
 
 ## Handoff 模板
@@ -79,7 +129,9 @@ git push -u origin agent/<agent-name>/<short-task-slug>
 
 Agent:
 Branch:
+Target stage:
 Commit:
+Purpose:
 
 Scope:
 - 
@@ -424,4 +476,3 @@ npm run zip
 - 如果任务必须跨维护范围，subAgent 需要在 handoff 中标注跨界原因。
 - review agent 发现跨界改动时，优先要求拆分提交或退回。
 - 主分支只接受 review agent 推送过的分支后再合并。
-

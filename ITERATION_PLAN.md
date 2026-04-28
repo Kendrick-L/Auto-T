@@ -9,8 +9,32 @@ Auto-T 的近期目标是做成一个本地可用、可测试、可持续迭代�
 - 每次迭代必须能构建，不能留下半接入状态。
 - 优先打通网页翻译主链路，再扩展 PDF、字幕、OCR。
 - 所有需要密钥、测试站点、模型选择、账号权限的任务，必须在开始前明确参数。
-- 每个子任务由对应 subAgent 在独立分支完成，review agent 审查通过后再推送。
+- 每个子任务由对应 subAgent 在独立开发分支完成，review agent 审查通过后先合入阶段分支，阶段验收完成后再合入 `main`。
 - 任何真实 API Key 不写入仓库、日志、提交信息或文档示例。
+
+## 分支路线
+
+Milestone 分支遵循：
+
+```text
+stage/m1-mvp-stability
+stage/m2-quality
+stage/m3-interaction
+stage/m4-dynamic-sites
+stage/m5-pdf-subtitle-research
+```
+
+开发分支遵循：
+
+```text
+agent/<milestone>/<area>/<task>
+```
+
+当前 Milestone 1 的阶段分支：
+
+```text
+stage/m1-mvp-stability
+```
 
 ## Milestone 1: MVP 稳定化
 
@@ -23,6 +47,9 @@ Auto-T 的近期目标是做成一个本地可用、可测试、可持续迭代�
 - 增加 DeepSeek 请求超时、重试、错误分类。
 - 完善缓存 key，加入 glossary version，避免术语更新后继续命中过期缓存。
 - 支持 `displayMode: bilingual | translation-only` 的真实渲染。
+- 默认翻译可视区域，保留整页翻译入口，避免大页面一次性翻译过慢。
+- 提升 DeepSeek JSON 返回容错，避免非 string 字段导致整个批次失败。
+- Popup 和 Options 使用简约高级的工具界面样式。
 - 增加 `npm run compile` 和 `npm run build` 的固定验收流程。
 
 验收：
@@ -147,4 +174,3 @@ npm run zip
 - 测试 URL 列表：用于页面兼容性验证。
 - 是否允许真实 API 消耗：默认不允许自动消耗大量额度。
 - 是否需要代理或企业网络配置：如 DeepSeek API 无法访问时必须确认。
-
