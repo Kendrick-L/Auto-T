@@ -33,9 +33,9 @@ export function App() {
     return chrome.tabs.sendMessage(tab.id, message) as Promise<ExtensionResponse>;
   }
 
-  async function translate(force = false) {
+  async function translate(force = false, scope: 'visible' | 'page' = 'visible') {
     setStatus('loading');
-    setMessage('Translating page...');
+    setMessage(scope === 'visible' ? 'Translating visible text...' : 'Translating page...');
     setProgress(null);
 
     try {
@@ -47,7 +47,7 @@ export function App() {
         return;
       }
 
-      const response = await sendToActiveTab({ type: 'TRANSLATE_PAGE', payload: { force } });
+      const response = await sendToActiveTab({ type: 'TRANSLATE_PAGE', payload: { force, scope } });
       if (!response.ok) {
         throw new Error(response.error);
       }
@@ -95,11 +95,14 @@ export function App() {
       </header>
 
       <section className="controls">
-        <button type="button" onClick={() => translate(false)} disabled={status === 'loading'}>
-          Translate
+        <button className="primary" type="button" onClick={() => translate(false, 'visible')} disabled={status === 'loading'}>
+          Visible
         </button>
-        <button type="button" onClick={() => translate(true)} disabled={status === 'loading'}>
-          Retry
+        <button type="button" onClick={() => translate(false, 'page')} disabled={status === 'loading'}>
+          Page
+        </button>
+        <button type="button" onClick={() => translate(true, 'visible')} disabled={status === 'loading'}>
+          Retry visible
         </button>
         <button type="button" onClick={restore} disabled={status === 'loading'}>
           Restore

@@ -8,6 +8,11 @@ export type PageSegment = {
   hash: string;
 };
 
+export type ScanPageSegmentsOptions = {
+  limit?: number;
+  viewportOnly?: boolean;
+};
+
 const TRANSLATABLE_SELECTOR = 'p,h1,h2,h3,h4,h5,h6,li,blockquote,figcaption,td,th';
 const SKIP_SELECTOR = [
   'script',
@@ -38,7 +43,8 @@ const SKIP_SELECTOR = [
   `.${EXTENSION_TRANSLATION_CLASS}`,
 ].join(',');
 
-export function scanPageSegments(limit = 80): PageSegment[] {
+export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSegment[] {
+  const limit = options.limit ?? 80;
   const elements = [...document.querySelectorAll<HTMLElement>(TRANSLATABLE_SELECTOR)];
   const segments: PageSegment[] = [];
   const seen = new Set<string>();
@@ -48,6 +54,7 @@ export function scanPageSegments(limit = 80): PageSegment[] {
     if (element.closest(SKIP_SELECTOR)) continue;
     if (hasTranslatableChild(element)) continue;
     if (!isVisible(element)) continue;
+    if (options.viewportOnly && !isInViewport(element)) continue;
 
     const text = normalizeText(element.innerText);
     if (!isUsefulText(text)) continue;
@@ -86,6 +93,12 @@ function isVisible(element: HTMLElement) {
   const style = window.getComputedStyle(element);
   const rect = element.getBoundingClientRect();
   return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+}
+
+function isInViewport(element: HTMLElement) {
+  const rect = element.getBoundingClientRect();
+  const verticalPadding = Math.round(window.innerHeight * 0.35);
+  return rect.bottom >= -verticalPadding && rect.top <= window.innerHeight + verticalPadding;
 }
 
 function hasTranslatableChild(element: HTMLElement) {

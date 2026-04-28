@@ -1,19 +1,9 @@
-import { z } from 'zod';
 import type { PageSegment } from '@/src/core/dom-scanner';
 import type { TranslatedSegment } from '@/src/translation/types';
 
-const ResponseSchema = z.object({
-  segments: z.array(
-    z.object({
-      id: z.string(),
-      translation: z.string(),
-    }),
-  ),
-});
-
 export function parseTranslationResponse(content: string, sourceSegments: PageSegment[]): TranslatedSegment[] {
   const json = extractJson(content);
-  const parsed = ResponseSchema.parse(JSON.parse(json));
+  const parsed = parseSegments(JSON.parse(json));
   const sourceById = new Map(sourceSegments.map((segment) => [segment.id, segment.text]));
 
   return parsed.segments
@@ -23,6 +13,67 @@ export function parseTranslationResponse(content: string, sourceSegments: PageSe
       source: sourceById.get(segment.id) ?? '',
       translation: segment.translation,
     }));
+}
+
+type ParsedResponse = {
+  segments: {
+    id: string;
+    translation: string;
+  }[];
+};
+
+function parseSegments(value: unknown): ParsedResponse {
+  if (!isRecord(value) || !Array.isArray(value.segments)) {
+    throw new Error('DeepSeek response JSON must contain a segments array.');
+  }
+
+  return {
+    segments: value.segments.map((segment, index) => {
+      if (!isRecord(segment)) {
+        throw new Error(`DeepSeek segment ${index + 1} was not an object.`);
+      }
+
+      const id = toStringValue(segment.id);
+      const translation = readTranslation(segment);
+      if (!id) {
+        throw new Error(`DeepSeek segment ${index + 1} was missing id.`);
+      }
+      if (!translation) {
+        throw new Error(`DeepSeek segment ${index + 1} was missing translation text.`);
+      }
+
+      return { id, translation };
+    }),
+  };
+}
+
+function readTranslation(segment: Record<string, unknown>) {
+  return (
+    toStringValue(segment.translation) ??
+    toStringValue(segment.target) ??
+    toStringValue(segment.translatedText) ??
+    toStringValue(segment.text) ??
+    readFirstStringValue(segment.translation)
+  );
+}
+
+function readFirstStringValue(value: unknown): string | undefined {
+  if (!isRecord(value)) return undefined;
+  for (const nestedValue of Object.values(value)) {
+    const text = toStringValue(nestedValue);
+    if (text) return text;
+  }
+  return undefined;
+}
+
+function toStringValue(value: unknown): string | undefined {
+  if (typeof value === 'string') return value.trim();
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function extractJson(content: string) {

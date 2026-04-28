@@ -10,7 +10,11 @@ export default defineContentScript({
     chrome.runtime.onMessage.addListener(
       (message: ExtensionMessage, _sender, sendResponse: (response: ExtensionResponse) => void) => {
         if (message.type === 'TRANSLATE_PAGE') {
-          const segments = scanPageSegments();
+          const scope = message.payload?.scope ?? 'visible';
+          const segments = scanPageSegments({
+            limit: scope === 'page' ? 80 : 24,
+            viewportOnly: scope === 'visible',
+          });
           if (segments.length === 0) {
             sendResponse({ ok: true, data: { segments: [] } });
             return false;
