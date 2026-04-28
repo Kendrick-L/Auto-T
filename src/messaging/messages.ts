@@ -19,6 +19,10 @@ export type ExtensionMessage =
         pageUrl: string;
         force?: boolean;
       };
+    }
+  | {
+      type: 'TRANSLATION_PROGRESS';
+      payload: TranslationProgress;
     };
 
 export type ExtensionResponse =
@@ -32,3 +36,12 @@ export type ExtensionResponse =
       ok: false;
       error: string;
     };
+
+export type TranslationProgress = {
+  total: number;
+  completed: number;
+  cached: number;
+  translated: number;
+  currentBatch?: number;
+  totalBatches?: number;
+};

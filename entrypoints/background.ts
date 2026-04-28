@@ -8,7 +8,11 @@ export default defineBackground(() => {
         return false;
       }
 
-      translateSegments(message.payload)
+      translateSegments(message.payload, (progress) => {
+        chrome.runtime.sendMessage({ type: 'TRANSLATION_PROGRESS', payload: progress } satisfies ExtensionMessage, () => {
+          void chrome.runtime.lastError;
+        });
+      })
         .then((segments) => sendResponse({ ok: true, data: { segments } }))
         .catch((error: unknown) => {
           sendResponse({
