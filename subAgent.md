@@ -49,16 +49,35 @@ agent/m2/translation/context-prompt
 ## 标准工作流
 
 1. 主 Agent 明确任务、维护范围、验收标准和需要的参数。
-2. 主 Agent 确认或创建对应 `stage/*` 阶段分支。
-3. subAgent 从最新阶段分支创建任务分支。
-4. subAgent 在限定文件范围内实现并提交。
-5. subAgent 写 handoff，说明改了什么、怎么测、风险是什么。
-6. review agent 切到该分支审查。
-7. review agent 运行必要测试。
-8. 若有问题，review agent 退回给原 subAgent 或在 review 允许范围内做最小修复。
-9. 若无问题，review agent 推送开发分支到 `origin`。
-10. review agent 将开发分支合入对应阶段分支并推送阶段分支。
-11. 阶段完成后，review agent 将阶段分支合入 `main`。
+2. 主 Agent 对照 `ITERATION_PLAN.md` 和当前 `docs/Phase-*-step.md` 判断需求归属。
+3. 如果需求属于后续阶段，先标注目标阶段并告知用户；如果当前阶段未覆盖但必须完成，优先加入当前阶段。
+4. 主 Agent 确认或创建对应 `stage/*` 阶段分支。
+5. subAgent 从最新阶段分支创建任务分支。
+6. subAgent 在限定文件范围内实现并提交。
+7. Doc Agent 在同一开发分支更新进度、使用说明、测试说明和阶段文档。
+8. subAgent 写 handoff，说明改了什么、怎么测、风险是什么。
+9. review agent 切到该分支审查。
+10. review agent 运行必要测试。
+11. 若有问题，review agent 退回给原 subAgent 或在 review 允许范围内做最小修复。
+12. 若无问题，review agent 推送开发分支到 `origin`。
+13. review agent 将开发分支合入对应阶段分支并推送阶段分支。
+14. 阶段完成后，review agent 将阶段分支合入 `main`。
+
+## 需求接入规则
+
+每条新增需求开始前必须先做文档对照：
+
+- 已在当前 `docs/Phase-*-step.md` 中：继续实现并更新该 step 状态。
+- 已在 `ITERATION_PLAN.md` 的后续 Milestone：标注为后续阶段，除非用户明确要求提前。
+- 未在任何文档中且影响当前阶段验收：加入当前 Phase step 并优先实现。
+- 未在任何文档中且不影响当前阶段验收：加入最匹配的未来 Milestone，再决定是否立即实现。
+
+开发完成后必须更新：
+
+- 当前 `docs/Phase-*-step.md`。
+- 如功能或测试方式变化，更新 `docs/USAGE.md`。
+- 如协作流程变化，更新 `subAgent.md`。
+- 如 roadmap 变化，更新 `ITERATION_PLAN.md`。
 
 ## 分支规范
 
@@ -390,6 +409,38 @@ handoff 重点：
 - 测试覆盖范围。
 - 尚未自动化的手动测试。
 - 浏览器和系统版本。
+
+### Doc Agent
+
+职责：
+
+- 维护阶段进度文档。
+- 维护使用说明、功能说明、测试说明。
+- 确保每次开发完成后文档状态和代码状态对齐。
+- 将新需求归类到当前 Phase 或后续 Milestone。
+
+主要文件：
+
+```text
+docs/Phase-*-step.md
+docs/USAGE.md
+README.md
+ITERATION_PLAN.md
+subAgent.md
+```
+
+不得擅自修改：
+
+- 功能代码。
+- 构建配置。
+- 业务逻辑。
+
+handoff 重点：
+
+- 本次需求是否已在文档中存在。
+- 本次需求属于当前阶段还是后续阶段。
+- 更新了哪些进度项。
+- 哪些测试说明需要人工补录。
 
 ### Review Agent
 
