@@ -42,6 +42,7 @@ type ElementSnapshot = {
     visibility: string;
     opacity: string;
     overflow: string;
+    marginBottom: string;
     position: string;
     whiteSpace: string;
     zIndex: string;
@@ -250,6 +251,8 @@ function ensurePortalItem(source: HTMLElement, translation: HTMLElement) {
     layer.appendChild(item);
   }
 
+  reservePortalSpace(source, item, sourceStyle);
+
   return item;
 }
 
@@ -262,6 +265,18 @@ function ensurePortalLayer() {
   layer.setAttribute('translate', 'no');
   document.body.appendChild(layer);
   return layer;
+}
+
+function reservePortalSpace(source: HTMLElement, translation: HTMLElement, sourceStyle: CSSStyleDeclaration) {
+  const existingBase = source.getAttribute('data-auto-t-original-margin-bottom');
+  if (existingBase === null) {
+    source.setAttribute('data-auto-t-original-margin-bottom', sourceStyle.marginBottom);
+  }
+
+  const baseMargin = Number.parseFloat(existingBase ?? sourceStyle.marginBottom);
+  const translationHeight = Math.ceil(translation.getBoundingClientRect().height);
+  const nextMargin = Math.max(Number.isFinite(baseMargin) ? baseMargin : 0, translationHeight + 8);
+  source.style.marginBottom = `${nextMargin}px`;
 }
 
 function findLastTextAnchor(root: HTMLElement) {
@@ -330,6 +345,7 @@ function snapshotElement(element: HTMLElement): ElementSnapshot {
       visibility: style.visibility,
       opacity: style.opacity,
       overflow: style.overflow,
+      marginBottom: style.marginBottom,
       position: style.position,
       whiteSpace: style.whiteSpace,
       zIndex: style.zIndex,
