@@ -18,6 +18,8 @@ export function renderTranslations(segments: TranslatedSegment[], displayMode: U
     const existing = document.querySelector<HTMLElement>(`[${EXTENSION_TRANSLATION_ATTR}="${CSS.escape(segment.id)}"]`);
     if (existing) {
       existing.textContent = segment.translation;
+      inheritSourceTypography(source, existing);
+      placeTranslation(source, existing, displayMode);
       continue;
     }
 
@@ -26,18 +28,35 @@ export function renderTranslations(segments: TranslatedSegment[], displayMode: U
     translation.setAttribute(EXTENSION_TRANSLATION_ATTR, segment.id);
     translation.textContent = segment.translation;
     inheritSourceTypography(source, translation);
-    source.insertAdjacentElement('afterend', translation);
+    placeTranslation(source, translation, displayMode);
   }
 }
 
 function inheritSourceTypography(source: HTMLElement, translation: HTMLElement) {
   const sourceStyle = window.getComputedStyle(source);
-  translation.style.fontSize = sourceStyle.fontSize;
+  const sourceFontSize = Number.parseFloat(sourceStyle.fontSize);
+  translation.style.fontSize = Number.isFinite(sourceFontSize) ? `${Math.max(sourceFontSize * 0.92, 10)}px` : sourceStyle.fontSize;
   translation.style.fontFamily = sourceStyle.fontFamily;
   translation.style.fontWeight = sourceStyle.fontWeight;
   translation.style.letterSpacing = sourceStyle.letterSpacing;
   translation.style.lineHeight = sourceStyle.lineHeight;
   translation.style.color = sourceStyle.color;
+}
+
+function placeTranslation(source: HTMLElement, translation: HTMLElement, displayMode: UserSettings['displayMode']) {
+  if (displayMode === 'translation-only') {
+    source.insertAdjacentElement('afterend', translation);
+    return;
+  }
+
+  const sourceStyle = window.getComputedStyle(source);
+  const isInline = sourceStyle.display.startsWith('inline');
+  if (isInline) {
+    source.insertAdjacentElement('afterend', translation);
+    return;
+  }
+
+  source.appendChild(translation);
 }
 
 function injectStyle() {
@@ -47,10 +66,15 @@ function injectStyle() {
   style.id = 'auto-t-style';
   style.textContent = `
     .${EXTENSION_TRANSLATION_CLASS} {
-      margin: 4px 0 10px;
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      clear: both;
+      margin: 6px 0 0;
       padding-left: 8px;
       border-left: 1px solid color-mix(in srgb, currentColor 22%, transparent);
-      opacity: 0.82;
+      opacity: 0.86;
+      white-space: normal;
     }
     .${EXTENSION_SOURCE_HIDDEN_CLASS} {
       display: none !important;
