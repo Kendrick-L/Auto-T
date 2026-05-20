@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { getSettings, saveSettings, type UserSettings } from '@/src/storage/settings-store';
+import { getDeepSeekApiKeySource, getSettings, saveSettings, type UserSettings } from '@/src/storage/settings-store';
 import { hasBundledDeepSeekApiKey } from '@/src/config/env';
 import { addGlossaryItem, getGlossaryItems, removeGlossaryItem, type GlossaryItem } from '@/src/storage/glossary-store';
 
@@ -57,6 +57,7 @@ export function App() {
             placeholder={hasBundledDeepSeekApiKey() ? 'Using .env key unless overridden' : 'sk-...'}
           />
           {hasBundledDeepSeekApiKey() ? <small>Environment key detected. This field can override it locally.</small> : null}
+          <small>Current source: {getDeepSeekApiKeySource(settings)}</small>
         </label>
 
         <label>

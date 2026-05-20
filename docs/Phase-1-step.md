@@ -31,6 +31,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Documentation progress and usage guide | In Progress | `agent/m1/docs-progress-usage` | Adds this progress file, usage guide, and Doc Agent workflow. |
 | Immersive Translate benchmark and roadmap update | Done | `agent/m1/docs-immersive-benchmark` | Researched UI/function capabilities and mapped them into `ITERATION_PLAN.md`. |
 | Env key fallback and next development evaluation | Done | `agent/m1/env-key-and-next-evaluation` | Uses `.env` as local DeepSeek key fallback and documents next functional/UI priorities. |
+| Key source UI and DeepSeek smoke script | Done | `agent/m1/key-source-smoke-test` | Shows active key source and adds a minimal DeepSeek smoke test command. |
 
 ## Completed Capabilities
 
@@ -46,6 +47,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Bilingual and translation-only display modes.
 - Competitive capability baseline for Immersive Translate recorded in `ITERATION_PLAN.md`.
 - DeepSeek API Key can be provided by Options or `.env` fallback for local development.
+- Popup and Options can show whether the active DeepSeek key comes from Options, `.env`, or is missing.
 
 ## Current Gaps
 
@@ -71,6 +73,8 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] Basic privacy explanation added to usage docs.
 - [x] `.env` DeepSeek API Key fallback implemented for local development.
 - [x] Next development functional/UI priorities documented.
+- [x] Key source UI implemented.
+- [x] `npm run smoke:deepseek` recorded.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real DeepSeek translation smoke test recorded after API Key and quota permission are provided.
 

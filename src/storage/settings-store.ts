@@ -37,3 +37,11 @@ export async function saveSettings(settings: UserSettings) {
 export function getEffectiveDeepSeekApiKey(settings: UserSettings) {
   return settings.deepseekApiKey.trim() || getBundledDeepSeekApiKey();
 }
+
+export type DeepSeekApiKeySource = 'options' | 'env' | 'missing';
+
+export function getDeepSeekApiKeySource(settings: UserSettings): DeepSeekApiKeySource {
+  if (settings.deepseekApiKey.trim()) return 'options';
+  if (getBundledDeepSeekApiKey()) return 'env';
+  return 'missing';
+}
