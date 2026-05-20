@@ -1,4 +1,5 @@
 import { buildTranslationPrompt } from '@/src/translation/prompt-builder';
+import { getEffectiveDeepSeekApiKey } from '@/src/storage/settings-store';
 import { parseTranslationResponse } from '@/src/translation/response-parser';
 import type { TranslateRequest, TranslatedSegment } from '@/src/translation/types';
 
@@ -15,11 +16,12 @@ const REQUEST_TIMEOUT_MS = 45_000;
 const MAX_ATTEMPTS = 2;
 
 export async function translateWithDeepSeek(request: TranslateRequest): Promise<TranslatedSegment[]> {
-  if (!request.settings.deepseekApiKey) {
+  const apiKey = getEffectiveDeepSeekApiKey(request.settings);
+  if (!apiKey) {
     throw new Error('DeepSeek API key is missing.');
   }
 
-  const response = await requestDeepSeek(request);
+  const response = await requestDeepSeek(request, apiKey);
 
   if (!response.ok) {
     throw new Error(formatDeepSeekError(response));
@@ -34,7 +36,7 @@ export async function translateWithDeepSeek(request: TranslateRequest): Promise<
   return parseTranslationResponse(content, request.segments);
 }
 
-async function requestDeepSeek(request: TranslateRequest) {
+async function requestDeepSeek(request: TranslateRequest, apiKey: string) {
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
@@ -44,7 +46,7 @@ async function requestDeepSeek(request: TranslateRequest) {
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${request.settings.deepseekApiKey}`,
+            Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({

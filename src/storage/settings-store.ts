@@ -1,3 +1,5 @@
+import { getBundledDeepSeekApiKey } from '@/src/config/env';
+
 export type UserSettings = {
   deepseekApiKey: string;
   targetLang: 'zh-CN' | 'en' | 'ja' | 'ko';
@@ -30,4 +32,8 @@ export async function getSettings(): Promise<UserSettings> {
 
 export async function saveSettings(settings: UserSettings) {
   await chrome.storage.local.set({ [SETTINGS_KEY]: settings });
+}
+
+export function getEffectiveDeepSeekApiKey(settings: UserSettings) {
+  return settings.deepseekApiKey.trim() || getBundledDeepSeekApiKey();
 }

@@ -146,6 +146,7 @@ stage/m1-mvp-stability
 - 提升 DeepSeek JSON 返回容错，避免非 string 字段导致整个批次失败。
 - Popup 和 Options 使用简约高级的工具界面样式。
 - 增加基础隐私说明：API Key 本地存储、翻译内容会发送到 DeepSeek、本地缓存可关闭。
+- 支持本地 `.env` DeepSeek API Key fallback，减少开发态手动配置。
 - 增加 `npm run compile` 和 `npm run build` 的固定验收流程。
 
 验收：
@@ -156,6 +157,7 @@ stage/m1-mvp-stability
 - 重复点击翻译不会重复插入译文。
 - Restore 后页面移除所有 Auto-T 译文节点。
 - 使用说明中包含 DeepSeek API Key、缓存和隐私边界。
+- 本地开发可通过 `.env` 提供 DeepSeek API Key，并说明构建期注入风险。
 
 ## Milestone 2: 翻译质量增强
 

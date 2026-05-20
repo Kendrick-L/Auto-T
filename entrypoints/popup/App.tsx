@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getSettings, saveSettings } from '@/src/storage/settings-store';
+import { getEffectiveDeepSeekApiKey, getSettings, saveSettings } from '@/src/storage/settings-store';
 import type { ExtensionMessage, ExtensionResponse, TranslationProgress } from '@/src/messaging/messages';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -40,9 +40,9 @@ export function App() {
 
     try {
       const settings = await getSettings();
-      if (!settings.deepseekApiKey) {
+      if (!getEffectiveDeepSeekApiKey(settings)) {
         setStatus('error');
-        setMessage('Set your DeepSeek API key first.');
+        setMessage('Set DeepSeek API key in Options or .env first.');
         await chrome.runtime.openOptionsPage();
         return;
       }
