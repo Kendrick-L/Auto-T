@@ -35,6 +35,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Prescan, auto visible, and typography fix | Done | `agent/m1/prescan-auto-style` | Pre-scans viewport segments, adds optional scroll auto-translate, and makes translated text inherit source typography. |
 | Deep DOM capture and vertical layout refinement | Done | `agent/m1/deep-dom-vertical-layout` | Captures deeply nested text containers and stacks translations below source text with slightly smaller typography. |
 | Paragraph capture and version bump | In Progress | `agent/m1/paragraph-capture-version-bump` | Fixes paragraph capture when text is nested under inline children and bumps extension version for Chrome reload/publish. |
+| Text-node scanner | Done | `agent/m1/text-node-scanner` | Replaces tag-first scanning with visible TextNode scanning so text inside arbitrary tags can be captured. |
 
 ## Completed Capabilities
 
@@ -58,6 +59,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Bilingual translations prefer vertical stacking under the source block and use a slightly smaller font.
 - Paragraphs with nested inline text are not skipped in favor of child `span/strong/em` nodes.
 - Extension version is bumped when a publishable update is prepared.
+- Scanner starts from visible text nodes rather than a fixed tag whitelist.
 
 ## Current Gaps
 
@@ -92,6 +94,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] Translation layout stacks below source blocks with slightly smaller text.
 - [x] Paragraph capture keeps `p` nodes even when text is nested in inline children.
 - [x] Extension/package version bumped for this update.
+- [x] Text-node-first scanning implemented for arbitrary tag nesting.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real Chrome extension page-translation smoke test recorded.
 
