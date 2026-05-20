@@ -33,6 +33,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Env key fallback and next development evaluation | Done | `agent/m1/env-key-and-next-evaluation` | Uses `.env` as local DeepSeek key fallback and documents next functional/UI priorities. |
 | Key source UI and DeepSeek smoke script | Done | `agent/m1/key-source-smoke-test` | Shows active key source and adds a minimal DeepSeek smoke test command. |
 | Prescan, auto visible, and typography fix | Done | `agent/m1/prescan-auto-style` | Pre-scans viewport segments, adds optional scroll auto-translate, and makes translated text inherit source typography. |
+| Deep DOM capture and vertical layout refinement | Done | `agent/m1/deep-dom-vertical-layout` | Captures deeply nested text containers and stacks translations below source text with slightly smaller typography. |
 
 ## Completed Capabilities
 
@@ -52,6 +53,8 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Viewport segment pre-scan reduces click-time parsing work.
 - Optional `Auto visible on scroll` can translate newly visible untranslated segments after scroll idle.
 - Translation typography inherits source font size, family, weight, line height, letter spacing, and color.
+- Deep DOM scanning can capture text stored in nested `div/span/strong/em` structures.
+- Bilingual translations prefer vertical stacking under the source block and use a slightly smaller font.
 
 ## Current Gaps
 
@@ -82,6 +85,8 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] Viewport segment pre-scan implemented.
 - [x] Optional scroll auto visible translation implemented.
 - [x] Translation typography inherits source style.
+- [x] Deep nested text containers are scanned.
+- [x] Translation layout stacks below source blocks with slightly smaller text.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real Chrome extension page-translation smoke test recorded.
 

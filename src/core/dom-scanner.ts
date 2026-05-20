@@ -14,6 +14,7 @@ export type ScanPageSegmentsOptions = {
 };
 
 const TRANSLATABLE_SELECTOR = 'p,h1,h2,h3,h4,h5,h6,li,blockquote,figcaption,td,th';
+const DEEP_TEXT_SELECTOR = `${TRANSLATABLE_SELECTOR},main,article,section,div,span,strong,em`;
 const SKIP_SELECTOR = [
   'script',
   'style',
@@ -45,19 +46,19 @@ const SKIP_SELECTOR = [
 
 export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSegment[] {
   const limit = options.limit ?? 80;
-  const elements = [...document.querySelectorAll<HTMLElement>(TRANSLATABLE_SELECTOR)];
+  const elements = [...document.querySelectorAll<HTMLElement>(DEEP_TEXT_SELECTOR)];
   const segments: PageSegment[] = [];
   const seen = new Set<string>();
 
   for (const element of elements) {
     if (segments.length >= limit) break;
     if (element.closest(SKIP_SELECTOR)) continue;
-    if (hasTranslatableChild(element)) continue;
     if (!isVisible(element)) continue;
     if (options.viewportOnly && !isInViewport(element)) continue;
 
-    const text = normalizeText(element.innerText);
+    const text = getElementText(element);
     if (!isUsefulText(text)) continue;
+    if (hasBetterChildCandidate(element, text)) continue;
 
     const hash = stableTextHash(text);
     if (seen.has(hash)) continue;
@@ -81,6 +82,30 @@ function normalizeText(text: string) {
   return text.replace(/\s+/g, ' ').trim();
 }
 
+function getElementText(element: HTMLElement) {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = node.parentElement;
+      if (!parent || parent.closest(SKIP_SELECTOR)) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      if (!node.textContent?.trim()) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  });
+
+  const textParts: string[] = [];
+  let node = walker.nextNode();
+  while (node) {
+    textParts.push(node.textContent ?? '');
+    node = walker.nextNode();
+  }
+
+  return normalizeText(textParts.join(' '));
+}
+
 function isUsefulText(text: string) {
   if (text.length < 12) return false;
   if (text.length > 3500) return false;
@@ -101,6 +126,16 @@ function isInViewport(element: HTMLElement) {
   return rect.bottom >= -verticalPadding && rect.top <= window.innerHeight + verticalPadding;
 }
 
-function hasTranslatableChild(element: HTMLElement) {
-  return Boolean(element.querySelector(TRANSLATABLE_SELECTOR));
+function hasBetterChildCandidate(element: HTMLElement, text: string) {
+  const children = [...element.querySelectorAll<HTMLElement>(DEEP_TEXT_SELECTOR)];
+  for (const child of children) {
+    if (child.closest(SKIP_SELECTOR) || !isVisible(child)) continue;
+
+    const childText = getElementText(child);
+    if (!isUsefulText(childText)) continue;
+    if (childText === text) return true;
+    if (childText.length > 60 && childText.length / text.length > 0.72) return true;
+  }
+
+  return false;
 }

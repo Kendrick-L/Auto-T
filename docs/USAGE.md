@@ -169,7 +169,8 @@ For hands-free reading, enable `Auto visible on scroll`. It is off by default be
 `Bilingual`:
 
 - Keeps the original text visible.
-- Inserts translation under the original segment.
+- Inserts translation under the original segment where the page layout allows.
+- Uses the source text family, color, weight, and line height with a slightly smaller font size.
 
 `Translation only`:
 
