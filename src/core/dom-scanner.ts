@@ -13,10 +13,32 @@ export type ScanPageSegmentsOptions = {
   viewportOnly?: boolean;
 };
 
-const TRANSLATABLE_SELECTOR = 'p,h1,h2,h3,h4,h5,h6,li,blockquote,figcaption,td,th';
-const DEEP_TEXT_SELECTOR = `${TRANSLATABLE_SELECTOR},main,article,section,div,span,strong,em`;
-const BLOCK_TEXT_SELECTOR = `${TRANSLATABLE_SELECTOR},main,article,section,div`;
-const SKIP_SELECTOR = [
+const SEGMENT_BOUNDARY_SELECTOR = [
+  'p',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'li',
+  'blockquote',
+  'figcaption',
+  'td',
+  'th',
+  'label',
+  '[role="listitem"]',
+  '[role="option"]',
+  '[role="group"]',
+  '[class*="question" i]',
+  '[class*="answer" i]',
+  '[class*="option" i]',
+  '[class*="scenario" i]',
+  '[class*="instruction" i]',
+].join(',');
+
+const BLOCK_FALLBACK_SELECTOR = 'main,article,section,div';
+const HARD_SKIP_SELECTOR = [
   'script',
   'style',
   'noscript',
@@ -34,7 +56,6 @@ const SKIP_SELECTOR = [
   'header',
   'footer',
   'aside',
-  'form',
   'menu',
   '[hidden]',
   '[aria-hidden="true"]',
@@ -47,19 +68,28 @@ const SKIP_SELECTOR = [
 
 export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSegment[] {
   const limit = options.limit ?? 80;
-  const elements = [...document.querySelectorAll<HTMLElement>(DEEP_TEXT_SELECTOR)];
+  const textNodes = collectTextNodes(options.viewportOnly ?? false);
+  const candidates = new Map<HTMLElement, string[]>();
+
+  for (const node of textNodes) {
+    const owner = findSegmentOwner(node);
+    if (!owner) continue;
+
+    const parts = candidates.get(owner) ?? [];
+    parts.push(node.textContent ?? '');
+    candidates.set(owner, parts);
+  }
+
   const segments: PageSegment[] = [];
   const seen = new Set<string>();
 
-  for (const element of elements) {
+  for (const [element, parts] of candidates) {
     if (segments.length >= limit) break;
-    if (element.closest(SKIP_SELECTOR)) continue;
     if (!isVisible(element)) continue;
     if (options.viewportOnly && !isInViewport(element)) continue;
 
-    const text = getElementText(element);
+    const text = normalizeText(parts.join(' '));
     if (!isUsefulText(text)) continue;
-    if (isContainerElement(element) && hasBetterChildCandidate(element, text)) continue;
 
     const hash = stableTextHash(text);
     if (seen.has(hash)) continue;
@@ -79,32 +109,57 @@ export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSeg
   return segments;
 }
 
-function normalizeText(text: string) {
-  return text.replace(/\s+/g, ' ').trim();
-}
+function collectTextNodes(viewportOnly: boolean) {
+  const nodes: Text[] = [];
+  const root = document.body;
+  if (!root) return nodes;
 
-function getElementText(element: HTMLElement) {
-  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
+      const text = normalizeText(node.textContent ?? '');
+      if (!isUsefulText(text)) return NodeFilter.FILTER_REJECT;
+
       const parent = node.parentElement;
-      if (!parent || parent.closest(SKIP_SELECTOR)) {
-        return NodeFilter.FILTER_REJECT;
-      }
-      if (!node.textContent?.trim()) {
-        return NodeFilter.FILTER_REJECT;
-      }
+      if (!parent || parent.closest(HARD_SKIP_SELECTOR)) return NodeFilter.FILTER_REJECT;
+      if (!isVisible(parent)) return NodeFilter.FILTER_REJECT;
+      if (viewportOnly && !isTextNodeInViewport(node as Text)) return NodeFilter.FILTER_REJECT;
+
       return NodeFilter.FILTER_ACCEPT;
     },
   });
 
-  const textParts: string[] = [];
   let node = walker.nextNode();
   while (node) {
-    textParts.push(node.textContent ?? '');
+    if (node.nodeType === Node.TEXT_NODE) {
+      nodes.push(node as Text);
+    }
     node = walker.nextNode();
   }
 
-  return normalizeText(textParts.join(' '));
+  return nodes;
+}
+
+function findSegmentOwner(textNode: Text) {
+  let element = textNode.parentElement;
+  let fallback: HTMLElement | null = null;
+
+  while (element && element !== document.body && element !== document.documentElement) {
+    if (element.closest(HARD_SKIP_SELECTOR)) return null;
+    if (element.matches(SEGMENT_BOUNDARY_SELECTOR)) return element;
+
+    const style = window.getComputedStyle(element);
+    if (!fallback && (isBlockLike(style.display) || element.matches(BLOCK_FALLBACK_SELECTOR))) {
+      fallback = element;
+    }
+
+    element = element.parentElement;
+  }
+
+  return fallback;
+}
+
+function normalizeText(text: string) {
+  return text.replace(/\s+/g, ' ').trim();
 }
 
 function isUsefulText(text: string) {
@@ -127,21 +182,27 @@ function isInViewport(element: HTMLElement) {
   return rect.bottom >= -verticalPadding && rect.top <= window.innerHeight + verticalPadding;
 }
 
-function hasBetterChildCandidate(element: HTMLElement, text: string) {
-  const children = [...element.querySelectorAll<HTMLElement>(DEEP_TEXT_SELECTOR)];
-  for (const child of children) {
-    if (!isContainerElement(child)) continue;
-    if (child.closest(SKIP_SELECTOR) || !isVisible(child)) continue;
+function isTextNodeInViewport(node: Text) {
+  const range = document.createRange();
+  range.selectNodeContents(node);
+  const rect = range.getBoundingClientRect();
+  range.detach();
 
-    const childText = getElementText(child);
-    if (!isUsefulText(childText)) continue;
-    if (childText === text) return true;
-    if (childText.length > 60 && childText.length / text.length > 0.72) return true;
+  if (rect.width === 0 || rect.height === 0) {
+    return node.parentElement ? isInViewport(node.parentElement) : false;
   }
 
-  return false;
+  const verticalPadding = Math.round(window.innerHeight * 0.35);
+  return rect.bottom >= -verticalPadding && rect.top <= window.innerHeight + verticalPadding;
 }
 
-function isContainerElement(element: HTMLElement) {
-  return element.matches(BLOCK_TEXT_SELECTOR);
+function isBlockLike(display: string) {
+  return (
+    display === 'block' ||
+    display === 'list-item' ||
+    display === 'table-cell' ||
+    display === 'table-row' ||
+    display === 'flex' ||
+    display === 'grid'
+  );
 }

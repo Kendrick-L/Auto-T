@@ -79,6 +79,8 @@ npm run zip
 
 After each update, run `npm run build`, then click Reload on the Auto-T extension card in `chrome://extensions`. The extension version is bumped for publishable updates so Chrome shows a new version.
 
+Current version: `0.1.2`.
+
 ## Configure DeepSeek
 
 You can configure DeepSeek in either of two ways.
