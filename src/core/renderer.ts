@@ -25,8 +25,19 @@ export function renderTranslations(segments: TranslatedSegment[], displayMode: U
     translation.className = EXTENSION_TRANSLATION_CLASS;
     translation.setAttribute(EXTENSION_TRANSLATION_ATTR, segment.id);
     translation.textContent = segment.translation;
+    inheritSourceTypography(source, translation);
     source.insertAdjacentElement('afterend', translation);
   }
+}
+
+function inheritSourceTypography(source: HTMLElement, translation: HTMLElement) {
+  const sourceStyle = window.getComputedStyle(source);
+  translation.style.fontSize = sourceStyle.fontSize;
+  translation.style.fontFamily = sourceStyle.fontFamily;
+  translation.style.fontWeight = sourceStyle.fontWeight;
+  translation.style.letterSpacing = sourceStyle.letterSpacing;
+  translation.style.lineHeight = sourceStyle.lineHeight;
+  translation.style.color = sourceStyle.color;
 }
 
 function injectStyle() {
@@ -37,11 +48,9 @@ function injectStyle() {
   style.textContent = `
     .${EXTENSION_TRANSLATION_CLASS} {
       margin: 4px 0 10px;
-      padding-left: 10px;
-      border-left: 2px solid #2f6fed;
-      color: #1d4ed8;
-      font-size: 0.95em;
-      line-height: 1.65;
+      padding-left: 8px;
+      border-left: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+      opacity: 0.82;
     }
     .${EXTENSION_SOURCE_HIDDEN_CLASS} {
       display: none !important;

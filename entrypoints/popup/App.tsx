@@ -16,10 +16,12 @@ export function App() {
   const [mode, setMode] = useState<'normal' | 'technical' | 'academic'>('normal');
   const [progress, setProgress] = useState<TranslationProgress | null>(null);
   const [keySource, setKeySource] = useState<DeepSeekApiKeySource>('missing');
+  const [autoTranslate, setAutoTranslate] = useState(false);
 
   useEffect(() => {
     void getSettings().then((settings) => {
       setMode(settings.mode);
+      setAutoTranslate(settings.autoTranslate);
       setKeySource(getDeepSeekApiKeySource(settings));
     });
 
@@ -96,6 +98,12 @@ export function App() {
     setMode(mode);
   }
 
+  async function updateAutoTranslate(enabled: boolean) {
+    const settings = await getSettings();
+    await saveSettings({ ...settings, autoTranslate: enabled });
+    setAutoTranslate(enabled);
+  }
+
   return (
     <main className="popup">
       <header>
@@ -127,6 +135,15 @@ export function App() {
           <option value="technical">Technical</option>
           <option value="academic">Academic</option>
         </select>
+      </label>
+
+      <label className="toggle-row">
+        <input
+          type="checkbox"
+          checked={autoTranslate}
+          onChange={(event) => updateAutoTranslate(event.target.checked)}
+        />
+        Auto visible on scroll
       </label>
 
       <p className={`key-source ${keySource}`}>

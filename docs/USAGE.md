@@ -146,6 +146,7 @@ Available actions:
 - `Page`: translates more of the page. This can be slower and may consume more API quota.
 - `Retry visible`: re-runs visible translation without cache.
 - `Restore`: removes Auto-T translations and restores hidden source text.
+- `Auto visible on scroll`: when enabled, translates untranslated visible text after scrolling stops.
 
 The popup also shows the active DeepSeek key source:
 
@@ -160,6 +161,8 @@ Recommended workflow:
 3. Click `Visible`.
 4. Continue scrolling and click `Visible` again for the next section.
 5. Use `Page` only when you want broader coverage.
+
+For hands-free reading, enable `Auto visible on scroll`. It is off by default because every newly translated viewport can consume DeepSeek API quota.
 
 ## Display Modes
 

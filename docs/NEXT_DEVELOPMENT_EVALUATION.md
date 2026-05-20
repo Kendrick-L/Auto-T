@@ -16,6 +16,8 @@
 - Manual Chrome smoke test 记录。
 - 真实 DeepSeek 可视区域翻译测试。
 - API Key 来源状态提示：Options 输入 / `.env` fallback / missing。
+- 预扫描当前视口 segments，降低点击翻译时的解析等待。
+- 轻量 `Auto visible on scroll`，滚动停止后翻译当前视口未翻译段落。
 - 隐私边界继续完善：缓存、发送内容、构建期 key 暴露风险。
 
 UI：
@@ -23,11 +25,13 @@ UI：
 - Popup 保持简约工具面板，不扩展复杂导航。
 - 增加更明确的状态文案：Using env key、Using saved key、Missing key。
 - `Visible` 保持主按钮，`Page` 保持次级按钮。
+- 译文默认继承原文字号、颜色和行高，仅用轻微透明度区分。
 
 风险：
 
 - `.env` key 在扩展构建后会进入产物，不适合公开发布或共享构建包。
 - 真实 API 测试会消耗 DeepSeek 额度。
+- `Auto visible on scroll` 会增加 API 请求，必须默认关闭，由用户主动开启。
 
 ### P1: M2 翻译质量增强
 
@@ -109,4 +113,3 @@ UI：
 4. 手动 Chrome smoke test。
 
 P0 完成后，再进入 M2 的 Prompt/术语/缓存管理。
-
