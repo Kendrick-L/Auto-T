@@ -48,6 +48,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Short inline scan repair | Done | `agent/m1/debug-segment-console` | Keeps short inline text nodes during collection and filters only after owner-level text aggregation. |
 | Rich-text portal spacing | Done | `agent/m1/debug-segment-console` | Reserves paragraph space for portal translations so translated text does not overlap following source content. |
 | Button text scan | Done | `agent/m1/debug-segment-console` | Allows button and role button labels to be scanned and translated. |
+| Segment loading indicator | Done | `agent/m1/debug-segment-console` | Shows a per-segment spinner placeholder while visible/page/scroll translation requests are in flight. |
 
 ## Completed Capabilities
 
@@ -83,6 +84,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Scanner includes content section headers and short inline terms before owner-level filtering.
 - Portal translations reserve source block margin to preserve readable flow.
 - Button labels are no longer hard-skipped by the scanner.
+- Text currently being translated shows a small inline loading spinner before the translated text is returned.
 
 ## Current Gaps
 
@@ -130,6 +132,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] Short inline text no longer disappears before paragraph aggregation.
 - [x] Portal translations reserve layout space to avoid overlapping source text.
 - [x] Button labels can be scanned for translation.
+- [x] In-flight visible/page/scroll translations show per-segment loading indicators.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real Chrome extension page-translation smoke test recorded.
 

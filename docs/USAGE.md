@@ -13,6 +13,7 @@ Current MVP features:
 - Restore the page by removing inserted translations.
 - Configure DeepSeek API Key, languages, translation mode, cache, and glossary.
 - Enable temporary debug console logging to inspect scan, LLM, and render stages.
+- Show per-text loading indicators while visible/page/scroll translations are running.
 - Cache translations to reduce repeated API calls.
 
 Not supported yet:
@@ -82,7 +83,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.12`.
+Current version: `0.1.13`.
 
 ## Configure DeepSeek
 

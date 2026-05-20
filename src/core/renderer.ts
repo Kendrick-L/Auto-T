@@ -4,6 +4,7 @@ import {
   EXTENSION_TRANSLATION_ATTR,
   EXTENSION_TRANSLATION_CLASS,
 } from '@/src/constants';
+import type { PageSegment } from '@/src/core/dom-scanner';
 import type { UserSettings } from '@/src/storage/settings-store';
 import type { TranslatedSegment } from '@/src/translation/types';
 
@@ -19,6 +20,9 @@ export type RenderTranslationResult = {
 };
 
 const TRANSLATION_INNER_CLASS = 'auto-t-translation-inner';
+const TRANSLATION_LOADING_CLASS = 'auto-t-translation-loading';
+const TRANSLATION_LOADING_SPINNER_CLASS = 'auto-t-translation-spinner';
+const TRANSLATION_LOADING_LABEL_CLASS = 'auto-t-translation-loading-label';
 const TRANSLATION_PORTAL_ID = 'auto-t-translation-layer';
 type TranslationPlacement = 'inline-inside-source' | 'after-source' | 'portal-overlay';
 type PlacementResult = {
@@ -105,6 +109,60 @@ export function renderTranslations(segments: TranslatedSegment[], displayMode: U
   return results;
 }
 
+export function renderTranslationLoading(segments: PageSegment[], displayMode: UserSettings['displayMode']) {
+  injectStyle();
+  const results: RenderTranslationResult[] = [];
+
+  for (const segment of segments) {
+    const source = document.querySelector<HTMLElement>(`[${EXTENSION_SEGMENT_ATTR}="${CSS.escape(segment.id)}"]`);
+    if (!source) {
+      results.push({
+        id: segment.id,
+        status: 'missing-source',
+        translation: 'Translating...',
+      });
+      continue;
+    }
+
+    const existing = document.querySelector<HTMLElement>(`[${EXTENSION_TRANSLATION_ATTR}="${CSS.escape(segment.id)}"]`);
+    if (existing && !existing.classList.contains(TRANSLATION_LOADING_CLASS)) {
+      continue;
+    }
+
+    source.classList.toggle(EXTENSION_SOURCE_HIDDEN_CLASS, displayMode === 'translation-only');
+    const sourceText = getSourceText(source);
+    const translation = existing ?? createLoadingElement(segment.id);
+    inheritSourceTypography(source, translation);
+    const placementResult = placeTranslation(source, translation, displayMode);
+
+    results.push({
+      id: segment.id,
+      status: existing ? 'updated' : 'inserted',
+      sourceText,
+      translation: 'Translating...',
+      placement: placementResult.placement,
+      anchor: snapshotElement(placementResult.anchor),
+      source: snapshotElement(source),
+      translationNode: snapshotElement(translation),
+    });
+  }
+
+  return results;
+}
+
+export function clearTranslationLoading(segments: PageSegment[]) {
+  for (const segment of segments) {
+    const source = document.querySelector<HTMLElement>(`[${EXTENSION_SEGMENT_ATTR}="${CSS.escape(segment.id)}"]`);
+    source?.classList.remove(EXTENSION_SOURCE_HIDDEN_CLASS);
+    restorePortalSpacing(source);
+
+    const existing = document.querySelector<HTMLElement>(`[${EXTENSION_TRANSLATION_ATTR}="${CSS.escape(segment.id)}"]`);
+    if (existing?.classList.contains(TRANSLATION_LOADING_CLASS)) {
+      existing.remove();
+    }
+  }
+}
+
 function inheritSourceTypography(source: HTMLElement, translation: HTMLElement) {
   const sourceStyle = window.getComputedStyle(source);
   const sourceFontSize = Number.parseFloat(sourceStyle.fontSize);
@@ -131,7 +189,32 @@ function createTranslationElement(segmentId: string, translationText: string) {
   return wrapper;
 }
 
+function createLoadingElement(segmentId: string) {
+  const wrapper = document.createElement('span');
+  wrapper.className = `${EXTENSION_TRANSLATION_CLASS} ${TRANSLATION_LOADING_CLASS}`;
+  wrapper.setAttribute(EXTENSION_TRANSLATION_ATTR, segmentId);
+  wrapper.setAttribute('translate', 'no');
+
+  const lineBreak = document.createElement('br');
+  const inner = document.createElement('span');
+  inner.className = TRANSLATION_INNER_CLASS;
+  inner.setAttribute('aria-label', 'Translating');
+
+  const spinner = document.createElement('span');
+  spinner.className = TRANSLATION_LOADING_SPINNER_CLASS;
+  spinner.setAttribute('aria-hidden', 'true');
+
+  const label = document.createElement('span');
+  label.className = TRANSLATION_LOADING_LABEL_CLASS;
+  label.textContent = 'Translating...';
+
+  inner.append(spinner, label);
+  wrapper.append(lineBreak, inner);
+  return wrapper;
+}
+
 function setTranslationText(translation: HTMLElement, text: string) {
+  translation.classList.remove(TRANSLATION_LOADING_CLASS);
   const inner = translation.querySelector<HTMLElement>(`.${TRANSLATION_INNER_CLASS}`);
   if (inner) {
     inner.textContent = text;
@@ -207,6 +290,34 @@ function injectStyle() {
       color: inherit;
       white-space: inherit;
     }
+    .${EXTENSION_TRANSLATION_CLASS}.${TRANSLATION_LOADING_CLASS} {
+      opacity: 0.68;
+    }
+    .${TRANSLATION_LOADING_CLASS} .${TRANSLATION_INNER_CLASS} {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      vertical-align: baseline;
+    }
+    .${TRANSLATION_LOADING_SPINNER_CLASS} {
+      display: inline-block;
+      width: 0.82em;
+      height: 0.82em;
+      border: 0.13em solid currentColor;
+      border-right-color: transparent;
+      border-radius: 999px;
+      animation: auto-t-translation-spin 0.8s linear infinite;
+      flex: 0 0 auto;
+    }
+    .${TRANSLATION_LOADING_LABEL_CLASS} {
+      font: inherit;
+      color: inherit;
+    }
+    @keyframes auto-t-translation-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
     .${EXTENSION_SOURCE_HIDDEN_CLASS} {
       display: none !important;
     }
@@ -234,7 +345,7 @@ function ensurePortalItem(source: HTMLElement, translation: HTMLElement) {
   );
   const item = existing ?? translation;
 
-  item.className = EXTENSION_TRANSLATION_CLASS;
+  item.classList.add(EXTENSION_TRANSLATION_CLASS);
   item.style.left = `${Math.round((rect.left + window.scrollX) * 100) / 100}px`;
   item.style.top = `${Math.round((rect.bottom + window.scrollY + 3) * 100) / 100}px`;
   item.style.width = `${Math.max(Math.round(rect.width * 100) / 100, 120)}px`;
@@ -277,6 +388,16 @@ function reservePortalSpace(source: HTMLElement, translation: HTMLElement, sourc
   const translationHeight = Math.ceil(translation.getBoundingClientRect().height);
   const nextMargin = Math.max(Number.isFinite(baseMargin) ? baseMargin : 0, translationHeight + 8);
   source.style.marginBottom = `${nextMargin}px`;
+}
+
+function restorePortalSpacing(source: HTMLElement | null) {
+  if (!source) return;
+
+  const originalMargin = source.getAttribute('data-auto-t-original-margin-bottom');
+  if (originalMargin === null) return;
+
+  source.style.marginBottom = originalMargin;
+  source.removeAttribute('data-auto-t-original-margin-bottom');
 }
 
 function findLastTextAnchor(root: HTMLElement) {

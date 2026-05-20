@@ -1,5 +1,5 @@
 import { scanPageSegments } from '@/src/core/dom-scanner';
-import { renderTranslations } from '@/src/core/renderer';
+import { clearTranslationLoading, renderTranslationLoading, renderTranslations } from '@/src/core/renderer';
 import { restorePage } from '@/src/core/restore';
 import { getEffectiveDeepSeekApiKey, getSettings } from '@/src/storage/settings-store';
 import { debugError, debugGroup, debugSegments, isLocalDebugEnabled } from '@/src/utils/debug-log';
@@ -123,6 +123,7 @@ async function translateAndRender(
   }
 
   debugSegments(debugLogging, 'sending segments to background', segments);
+  await renderLoadingWithCurrentSettings(segments, debugLogging);
 
   return new Promise((resolve) => {
     if (!isExtensionContextActive()) {
@@ -147,11 +148,13 @@ async function translateAndRender(
         async (response: ExtensionResponse | undefined) => {
           const lastError = getRuntimeLastError();
           if (lastError) {
+            clearTranslationLoading(segments);
             resolve({ ok: false, error: lastError });
             return;
           }
 
           if (!response) {
+            clearTranslationLoading(segments);
             resolve({ ok: false, error: 'No response from Auto-T background service worker.' });
             return;
           }
@@ -160,6 +163,7 @@ async function translateAndRender(
             debugSegments(debugLogging, 'received translated segments from background', response.data.segments);
             await renderWithCurrentSettings(response.data.segments, debugLogging);
           } else if (!response.ok) {
+            clearTranslationLoading(segments);
             debugError(debugLogging, 'background translation failed', response.error);
           }
           resolve(response);
@@ -178,6 +182,12 @@ async function renderWithCurrentSettings(segments: TranslatedSegment[], debugLog
   const settings = await getContentSettings();
   const renderResults = renderTranslations(segments, settings?.displayMode ?? 'bilingual');
   debugGroup(debugLogging ?? settings?.debugLogging, 'render result', renderResults);
+}
+
+async function renderLoadingWithCurrentSettings(segments: PageSegment[], debugLogging?: boolean) {
+  const settings = await getContentSettings();
+  const renderResults = renderTranslationLoading(segments, settings?.displayMode ?? 'bilingual');
+  debugGroup(debugLogging ?? settings?.debugLogging, 'loading render result', renderResults);
 }
 
 function scheduleAutoTranslate() {
@@ -207,14 +217,18 @@ async function autoTranslateVisibleSegments() {
 
   try {
     debugSegments(debugLogging, 'auto visible untranslated segments', untranslatedSegments);
-    await translateAndRender(untranslatedSegments, false, debugLogging);
+    const response = await translateAndRender(untranslatedSegments, false, debugLogging);
+    if (!response.ok) {
+      lastAutoTranslateSignature = '';
+    }
   } finally {
     autoTranslateInFlight = false;
   }
 }
 
 function hasRenderedTranslation(segmentId: string) {
-  return Boolean(document.querySelector(`[data-auto-t-for="${CSS.escape(segmentId)}"]`));
+  const translation = document.querySelector<HTMLElement>(`[data-auto-t-for="${CSS.escape(segmentId)}"]`);
+  return Boolean(translation && !translation.classList.contains('auto-t-translation-loading'));
 }
 
 async function getContentSettings(): Promise<UserSettings | null> {
