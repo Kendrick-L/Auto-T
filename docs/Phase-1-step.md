@@ -13,7 +13,7 @@ stage/m1-mvp-stability
 Current development branch:
 
 ```text
-agent/m1/env-key-and-next-evaluation
+agent/m1/prescan-auto-style
 ```
 
 ## Current Goal
@@ -32,6 +32,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Immersive Translate benchmark and roadmap update | Done | `agent/m1/docs-immersive-benchmark` | Researched UI/function capabilities and mapped them into `ITERATION_PLAN.md`. |
 | Env key fallback and next development evaluation | Done | `agent/m1/env-key-and-next-evaluation` | Uses `.env` as local DeepSeek key fallback and documents next functional/UI priorities. |
 | Key source UI and DeepSeek smoke script | Done | `agent/m1/key-source-smoke-test` | Shows active key source and adds a minimal DeepSeek smoke test command. |
+| Prescan, auto visible, and typography fix | Done | `agent/m1/prescan-auto-style` | Pre-scans viewport segments, adds optional scroll auto-translate, and makes translated text inherit source typography. |
 
 ## Completed Capabilities
 
@@ -48,12 +49,15 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Competitive capability baseline for Immersive Translate recorded in `ITERATION_PLAN.md`.
 - DeepSeek API Key can be provided by Options or `.env` fallback for local development.
 - Popup and Options can show whether the active DeepSeek key comes from Options, `.env`, or is missing.
+- Viewport segment pre-scan reduces click-time parsing work.
+- Optional `Auto visible on scroll` can translate newly visible untranslated segments after scroll idle.
+- Translation typography inherits source font size, family, weight, line height, letter spacing, and color.
 
 ## Current Gaps
 
 - No automated browser test yet.
-- No real DeepSeek API smoke test recorded in repo, because API Key and quota permission are required.
-- No dynamic webpage MutationObserver flow yet.
+- No manual Chrome extension page-translation test recorded yet.
+- No full dynamic webpage MutationObserver flow yet; current auto visible scroll support is a lightweight M1.5 mitigation.
 - No selection popup, hover translation, or input box translation yet.
 - No PDF or subtitle support yet.
 - Manual Chrome and real DeepSeek smoke test evidence still need to be recorded.
@@ -75,13 +79,16 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] Next development functional/UI priorities documented.
 - [x] Key source UI implemented.
 - [x] `npm run smoke:deepseek` recorded.
+- [x] Viewport segment pre-scan implemented.
+- [x] Optional scroll auto visible translation implemented.
+- [x] Translation typography inherits source style.
 - [ ] Manual Chrome load test recorded with test URL.
-- [ ] Real DeepSeek translation smoke test recorded after API Key and quota permission are provided.
+- [ ] Real Chrome extension page-translation smoke test recorded.
 
 ## Required Parameters For Manual Completion
 
-- DeepSeek API Key, entered in the extension Options page.
-- Permission to spend a small amount of DeepSeek API quota.
+- DeepSeek API Key, provided by `.env` or Options.
+- Permission to spend a small amount of DeepSeek API quota in the browser extension.
 - At least one test URL, preferably:
   - `https://developer.mozilla.org/`
   - `https://en.wikipedia.org/`
