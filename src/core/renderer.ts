@@ -19,7 +19,8 @@ export type RenderTranslationResult = {
 };
 
 const TRANSLATION_INNER_CLASS = 'auto-t-translation-inner';
-type TranslationPlacement = 'inline-inside-source' | 'after-source';
+const TRANSLATION_PORTAL_ID = 'auto-t-translation-layer';
+type TranslationPlacement = 'inline-inside-source' | 'after-source' | 'portal-overlay';
 type PlacementResult = {
   anchor: HTMLElement;
   placement: TranslationPlacement;
@@ -154,6 +155,12 @@ function placeTranslation(
     return { anchor: source, placement: 'after-source' };
   }
 
+  const richTextRoot = findRichTextRoot(source);
+  if (richTextRoot) {
+    const portalItem = ensurePortalItem(source, translation);
+    return { anchor: portalItem, placement: 'portal-overlay' };
+  }
+
   const anchor = findLastTextAnchor(source) ?? source;
   anchor.appendChild(translation);
   return { anchor, placement: 'inline-inside-source' };
@@ -174,6 +181,21 @@ function injectStyle() {
       opacity: 0.86;
       white-space: inherit;
     }
+    #${TRANSLATION_PORTAL_ID} {
+      position: absolute;
+      inset: 0 auto auto 0;
+      z-index: 2147483646;
+      pointer-events: none;
+    }
+    #${TRANSLATION_PORTAL_ID} .${EXTENSION_TRANSLATION_CLASS} {
+      position: absolute;
+      display: block;
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+    #${TRANSLATION_PORTAL_ID} .${EXTENSION_TRANSLATION_CLASS} br {
+      display: none;
+    }
     .${EXTENSION_TRANSLATION_CLASS}.${EXTENSION_TRANSLATION_CLASS} {
       font: inherit;
       color: inherit;
@@ -189,6 +211,57 @@ function injectStyle() {
     }
   `;
   document.documentElement.appendChild(style);
+}
+
+function findRichTextRoot(element: HTMLElement) {
+  return element.closest<HTMLElement>(
+    [
+      '[data-lexical-editor="true"]',
+      '[data-lexical-editor]',
+      '.lexical-rich-text-content',
+      '[class*="lexical-rich-text-content" i]',
+    ].join(','),
+  );
+}
+
+function ensurePortalItem(source: HTMLElement, translation: HTMLElement) {
+  const layer = ensurePortalLayer();
+  const rect = source.getBoundingClientRect();
+  const sourceStyle = window.getComputedStyle(source);
+  const existing = layer.querySelector<HTMLElement>(
+    `[${EXTENSION_TRANSLATION_ATTR}="${CSS.escape(translation.getAttribute(EXTENSION_TRANSLATION_ATTR) ?? '')}"]`,
+  );
+  const item = existing ?? translation;
+
+  item.className = EXTENSION_TRANSLATION_CLASS;
+  item.style.left = `${Math.round((rect.left + window.scrollX) * 100) / 100}px`;
+  item.style.top = `${Math.round((rect.bottom + window.scrollY + 3) * 100) / 100}px`;
+  item.style.width = `${Math.max(Math.round(rect.width * 100) / 100, 120)}px`;
+  item.style.fontSize = translation.style.fontSize;
+  item.style.fontFamily = translation.style.fontFamily;
+  item.style.fontWeight = translation.style.fontWeight;
+  item.style.letterSpacing = translation.style.letterSpacing;
+  item.style.lineHeight = translation.style.lineHeight;
+  item.style.color = translation.style.color;
+  item.style.opacity = '0.86';
+  item.style.whiteSpace = sourceStyle.whiteSpace === 'nowrap' ? 'normal' : sourceStyle.whiteSpace;
+
+  if (!existing) {
+    layer.appendChild(item);
+  }
+
+  return item;
+}
+
+function ensurePortalLayer() {
+  const existing = document.getElementById(TRANSLATION_PORTAL_ID);
+  if (existing instanceof HTMLElement) return existing;
+
+  const layer = document.createElement('div');
+  layer.id = TRANSLATION_PORTAL_ID;
+  layer.setAttribute('translate', 'no');
+  document.body.appendChild(layer);
+  return layer;
 }
 
 function findLastTextAnchor(root: HTMLElement) {

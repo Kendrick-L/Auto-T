@@ -44,6 +44,8 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Background debug serialization fix | Done | `agent/m1/debug-segment-console` | Keeps service-worker debug records as structured JSON instead of falling back to `[object Object]`. |
 | Batch fallback and partial render | Done | `agent/m1/debug-segment-console` | Repairs common malformed JSON responses and retries failed batches by single segment so successful translations still render. |
 | Progressive batch render | Done | `agent/m1/debug-segment-console` | Renders each successful DeepSeek batch immediately instead of waiting for the full page request to finish. |
+| Rich-text portal render | Done | `agent/m1/debug-segment-console` | Renders Lexical/rich-text translations in a body-level portal so framework DOM cleanup cannot remove inserted nodes. |
+| Short inline scan repair | Done | `agent/m1/debug-segment-console` | Keeps short inline text nodes during collection and filters only after owner-level text aggregation. |
 
 ## Completed Capabilities
 
@@ -75,6 +77,8 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Background debug logging serializes structured records safely in service-worker contexts.
 - Translation service no longer drops all successful batches when one later batch returns malformed JSON.
 - Successful batches are sent back to the content script immediately for progressive page rendering.
+- Lexical/rich-text content uses a body-level portal overlay to avoid React cleanup removing translations.
+- Scanner includes content section headers and short inline terms before owner-level filtering.
 
 ## Current Gaps
 
@@ -118,6 +122,8 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] Background debug logs preserve structured batch details.
 - [x] Batch-level parse failures retry individually and return partial successful translations.
 - [x] Successful translation batches render progressively before the full page request finishes.
+- [x] Rich-text page translations survive framework cleanup by using portal placement.
+- [x] Short inline text no longer disappears before paragraph aggregation.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real Chrome extension page-translation smoke test recorded.
 

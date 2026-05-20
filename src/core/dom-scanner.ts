@@ -53,7 +53,6 @@ const HARD_SKIP_SELECTOR = [
   'svg',
   'canvas',
   'nav',
-  'header',
   'footer',
   'aside',
   'menu',
@@ -117,7 +116,7 @@ function collectTextNodes(viewportOnly: boolean) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
       const text = normalizeText(node.textContent ?? '');
-      if (!isUsefulText(text)) return NodeFilter.FILTER_REJECT;
+      if (!text) return NodeFilter.FILTER_REJECT;
 
       const parent = node.parentElement;
       if (!parent || parent.closest(HARD_SKIP_SELECTOR)) return NodeFilter.FILTER_REJECT;
