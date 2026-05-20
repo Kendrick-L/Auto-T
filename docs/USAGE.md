@@ -50,6 +50,14 @@ Type check:
 npm run compile
 ```
 
+DeepSeek smoke test:
+
+```bash
+npm run smoke:deepseek
+```
+
+This reads `WXT_DEEPSEEK_API_KEY` or `DEEPSEEK_API_KEY` from `.env` and sends one tiny request to DeepSeek. It does not print the key.
+
 Package extension:
 
 ```bash
@@ -138,6 +146,12 @@ Available actions:
 - `Page`: translates more of the page. This can be slower and may consume more API quota.
 - `Retry visible`: re-runs visible translation without cache.
 - `Restore`: removes Auto-T translations and restores hidden source text.
+
+The popup also shows the active DeepSeek key source:
+
+- `Using saved key`: Options page key is active.
+- `Using .env key`: local build-time key is active.
+- `Missing DeepSeek key`: no key is available.
 
 Recommended workflow:
 

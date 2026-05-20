@@ -90,6 +90,28 @@ select {
   line-height: 1.45;
 }
 
+.key-source {
+  margin: 0;
+  padding: 7px 8px;
+  border: 1px solid #d9dde3;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #4b5563;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.key-source.env,
+.key-source.options {
+  border-color: #c8d8d1;
+  color: #1f7a5a;
+}
+
+.key-source.missing {
+  border-color: #f1c2bd;
+  color: #b42318;
+}
+
 .progress {
   height: 6px;
   overflow: hidden;

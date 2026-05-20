@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { getEffectiveDeepSeekApiKey, getSettings, saveSettings } from '@/src/storage/settings-store';
+import {
+  getDeepSeekApiKeySource,
+  getEffectiveDeepSeekApiKey,
+  getSettings,
+  saveSettings,
+  type DeepSeekApiKeySource,
+} from '@/src/storage/settings-store';
 import type { ExtensionMessage, ExtensionResponse, TranslationProgress } from '@/src/messaging/messages';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -9,9 +15,13 @@ export function App() {
   const [message, setMessage] = useState('Ready');
   const [mode, setMode] = useState<'normal' | 'technical' | 'academic'>('normal');
   const [progress, setProgress] = useState<TranslationProgress | null>(null);
+  const [keySource, setKeySource] = useState<DeepSeekApiKeySource>('missing');
 
   useEffect(() => {
-    void getSettings().then((settings) => setMode(settings.mode));
+    void getSettings().then((settings) => {
+      setMode(settings.mode);
+      setKeySource(getDeepSeekApiKeySource(settings));
+    });
 
     const listener = (message: ExtensionMessage) => {
       if (message.type !== 'TRANSLATION_PROGRESS') return;
@@ -40,6 +50,7 @@ export function App() {
 
     try {
       const settings = await getSettings();
+      setKeySource(getDeepSeekApiKeySource(settings));
       if (!getEffectiveDeepSeekApiKey(settings)) {
         setStatus('error');
         setMessage('Set DeepSeek API key in Options or .env first.');
@@ -117,6 +128,10 @@ export function App() {
           <option value="academic">Academic</option>
         </select>
       </label>
+
+      <p className={`key-source ${keySource}`}>
+        {keySource === 'options' ? 'Using saved key' : keySource === 'env' ? 'Using .env key' : 'Missing DeepSeek key'}
+      </p>
 
       {progress ? (
         <div className="progress" aria-label="Translation progress">
