@@ -25,6 +25,12 @@ export type ExtensionMessage =
   | {
       type: 'TRANSLATION_PROGRESS';
       payload: TranslationProgress;
+    }
+  | {
+      type: 'TRANSLATION_BATCH_RESULT';
+      payload: {
+        segments: TranslatedSegment[];
+      };
     };
 
 export type ExtensionResponse =

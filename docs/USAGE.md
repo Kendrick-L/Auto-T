@@ -82,7 +82,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.9`.
+Current version: `0.1.10`.
 
 ## Configure DeepSeek
 
@@ -211,6 +211,7 @@ The console prints grouped logs with the prefix `[Auto-T Debug]`:
 - `DeepSeek raw content`: raw model response.
 - `DeepSeek parsed response`: parsed translation objects.
 - `render result`: whether each translation was inserted, updated, or failed because the source node was missing.
+- Batch translations are rendered progressively as each DeepSeek batch succeeds, so later failures do not block earlier visible output.
 
 `render result` also includes source, anchor, and inserted translation node snapshots with `outerHTML`, bounding rect, and computed style.
 

@@ -3,16 +3,29 @@ import type { ExtensionMessage, ExtensionResponse } from '@/src/messaging/messag
 
 export default defineBackground(() => {
   chrome.runtime.onMessage.addListener(
-    (message: ExtensionMessage, _sender, sendResponse: (response: ExtensionResponse) => void) => {
+    (message: ExtensionMessage, sender, sendResponse: (response: ExtensionResponse) => void) => {
       if (message.type !== 'TRANSLATE_SEGMENTS') {
         return false;
       }
 
-      translateSegments(message.payload, (progress) => {
-        chrome.runtime.sendMessage({ type: 'TRANSLATION_PROGRESS', payload: progress } satisfies ExtensionMessage, () => {
-          void chrome.runtime.lastError;
-        });
-      })
+      translateSegments(
+        message.payload,
+        (progress) => {
+          chrome.runtime.sendMessage({ type: 'TRANSLATION_PROGRESS', payload: progress } satisfies ExtensionMessage, () => {
+            void chrome.runtime.lastError;
+          });
+        },
+        (segments) => {
+          if (!sender.tab?.id || segments.length === 0) return;
+          chrome.tabs.sendMessage(
+            sender.tab.id,
+            { type: 'TRANSLATION_BATCH_RESULT', payload: { segments } } satisfies ExtensionMessage,
+            () => {
+              void chrome.runtime.lastError;
+            },
+          );
+        },
+      )
         .then((segments) => sendResponse({ ok: true, data: { segments } }))
         .catch((error: unknown) => {
           sendResponse({

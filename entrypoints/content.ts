@@ -47,6 +47,12 @@ export default defineContentScript({
           return false;
         }
 
+        if (message.type === 'TRANSLATION_BATCH_RESULT') {
+          void renderWithCurrentSettings(message.payload.segments);
+          sendResponse({ ok: true, data: { rendered: message.payload.segments.length } });
+          return false;
+        }
+
         return false;
       },
     );

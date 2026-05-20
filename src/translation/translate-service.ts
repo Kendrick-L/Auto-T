@@ -13,6 +13,7 @@ const BATCH_SIZE = 12;
 export async function translateSegments(
   payload: TranslatePayload,
   onProgress?: (progress: TranslationProgress) => void,
+  onBatchTranslated?: (segments: TranslatedSegment[]) => void,
 ): Promise<TranslatedSegment[]> {
   const settings = await getSettings();
   const glossary = await getGlossaryItems();
@@ -76,6 +77,7 @@ export async function translateSegments(
     if (settings.enableCache) {
       await saveCachedTranslations(translated, settings, glossaryVersion);
     }
+    onBatchTranslated?.(translated);
 
     onProgress?.({
       total: payload.segments.length,
