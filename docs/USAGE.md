@@ -77,6 +77,8 @@ npm run zip
 
 5. Pin Auto-T if desired.
 
+After each update, run `npm run build`, then click Reload on the Auto-T extension card in `chrome://extensions`. The extension version is bumped for publishable updates so Chrome shows a new version.
+
 ## Configure DeepSeek
 
 You can configure DeepSeek in either of two ways.

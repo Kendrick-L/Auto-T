@@ -15,6 +15,7 @@ export type ScanPageSegmentsOptions = {
 
 const TRANSLATABLE_SELECTOR = 'p,h1,h2,h3,h4,h5,h6,li,blockquote,figcaption,td,th';
 const DEEP_TEXT_SELECTOR = `${TRANSLATABLE_SELECTOR},main,article,section,div,span,strong,em`;
+const BLOCK_TEXT_SELECTOR = `${TRANSLATABLE_SELECTOR},main,article,section,div`;
 const SKIP_SELECTOR = [
   'script',
   'style',
@@ -58,7 +59,7 @@ export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSeg
 
     const text = getElementText(element);
     if (!isUsefulText(text)) continue;
-    if (hasBetterChildCandidate(element, text)) continue;
+    if (isContainerElement(element) && hasBetterChildCandidate(element, text)) continue;
 
     const hash = stableTextHash(text);
     if (seen.has(hash)) continue;
@@ -129,6 +130,7 @@ function isInViewport(element: HTMLElement) {
 function hasBetterChildCandidate(element: HTMLElement, text: string) {
   const children = [...element.querySelectorAll<HTMLElement>(DEEP_TEXT_SELECTOR)];
   for (const child of children) {
+    if (!isContainerElement(child)) continue;
     if (child.closest(SKIP_SELECTOR) || !isVisible(child)) continue;
 
     const childText = getElementText(child);
@@ -138,4 +140,8 @@ function hasBetterChildCandidate(element: HTMLElement, text: string) {
   }
 
   return false;
+}
+
+function isContainerElement(element: HTMLElement) {
+  return element.matches(BLOCK_TEXT_SELECTOR);
 }
