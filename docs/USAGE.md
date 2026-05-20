@@ -83,6 +83,28 @@ Important:
 - Do not paste API Keys into docs, issues, logs, or screenshots.
 - Real translation tests consume DeepSeek API quota.
 
+## Privacy Boundary
+
+Auto-T is local-first, but translation is not fully local when DeepSeek is used.
+
+Current behavior:
+
+- The DeepSeek API Key is stored in Chrome local extension storage.
+- Text selected for translation is sent to the DeepSeek API.
+- Page title and page URL are included in translation requests to improve context.
+- Translation cache is stored locally through Chrome storage.
+- Cache can be disabled in Options.
+- Glossary items are stored locally.
+
+Do not use real translation on sensitive pages unless you are comfortable sending the selected text, page title, and URL to DeepSeek.
+
+Recommended sensitive-data practice:
+
+- Use `Visible` instead of `Page` to reduce the amount of text sent.
+- Disable cache before translating sensitive material.
+- Avoid translating secrets, credentials, contracts, private customer data, or unreleased company documents.
+- Clear extension storage manually from Chrome if sensitive content was translated by mistake.
+
 ## Use The Popup
 
 Available actions:
@@ -183,4 +205,3 @@ Record for each manual run:
 - Large pages should use `Visible` first to avoid slow full-page requests.
 - Dynamic content is not automatically translated yet.
 - Some websites with unusual DOM structures may still include irrelevant text or skip desired text.
-
