@@ -29,6 +29,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Stabilize MVP translation flow | Done | `agent/framework/mvp-stability` | Progress messages, display mode, cache versioning, DeepSeek timeout/retry, DOM filtering. |
 | Visible translation and parser fallback | Done | `agent/m1/visible-parser-ui` | Default visible scope, page scope as secondary action, tolerant DeepSeek response parser, UI refresh. |
 | Documentation progress and usage guide | In Progress | `agent/m1/docs-progress-usage` | Adds this progress file, usage guide, and Doc Agent workflow. |
+| Immersive Translate benchmark and roadmap update | Done | `agent/m1/docs-immersive-benchmark` | Researched UI/function capabilities and mapped them into `ITERATION_PLAN.md`. |
 
 ## Completed Capabilities
 
@@ -42,6 +43,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Tolerant translation response parsing for common model output variants.
 - Translation cache invalidated by source text, language, mode, and glossary version.
 - Bilingual and translation-only display modes.
+- Competitive capability baseline for Immersive Translate recorded in `ITERATION_PLAN.md`.
 
 ## Current Gaps
 
@@ -50,6 +52,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - No dynamic webpage MutationObserver flow yet.
 - No selection popup, hover translation, or input box translation yet.
 - No PDF or subtitle support yet.
+- Manual Chrome and real DeepSeek smoke test evidence still need to be recorded.
 
 ## Acceptance Checklist For Phase 1
 
@@ -62,6 +65,8 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] Documentation describes usage, testing, progress, and agent responsibilities.
 - [x] New requirement intake rule documented.
 - [x] Doc Agent ownership documented.
+- [x] Immersive Translate capability benchmark mapped to roadmap.
+- [x] Basic privacy explanation added to usage docs.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real DeepSeek translation smoke test recorded after API Key and quota permission are provided.
 
