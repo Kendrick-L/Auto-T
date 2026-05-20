@@ -71,17 +71,41 @@ npm run zip
 
 ## Configure DeepSeek
 
+You can configure DeepSeek in either of two ways.
+
+Option A: `.env` for local development:
+
+```bash
+WXT_DEEPSEEK_API_KEY=your_key_here
+```
+
+`DEEPSEEK_API_KEY` is also supported in this project.
+
+After changing `.env`, restart the dev server or rebuild the extension:
+
+```bash
+npm run dev
+```
+
+Option B: Options page override:
+
 1. Open the Auto-T popup.
 2. Click Settings.
 3. Enter your DeepSeek API Key.
 4. Choose source language, target language, translation mode, and display mode.
 5. Save settings.
 
+Priority:
+
+1. Options page key.
+2. `.env` key bundled at build time.
+
 Important:
 
 - Do not commit API Keys.
 - Do not paste API Keys into docs, issues, logs, or screenshots.
 - Real translation tests consume DeepSeek API quota.
+- A `.env` key is bundled into the extension build and can be extracted from a shared build artifact. Use it only for local development or private builds.
 
 ## Privacy Boundary
 
@@ -89,7 +113,8 @@ Auto-T is local-first, but translation is not fully local when DeepSeek is used.
 
 Current behavior:
 
-- The DeepSeek API Key is stored in Chrome local extension storage.
+- The DeepSeek API Key can come from Chrome local extension storage or from `.env` at build time.
+- A build-time `.env` key is embedded in the generated extension bundle.
 - Text selected for translation is sent to the DeepSeek API.
 - Page title and page URL are included in translation requests to improve context.
 - Translation cache is stored locally through Chrome storage.

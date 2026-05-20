@@ -17,6 +17,7 @@ Auto-T is a local-first Chrome MV3 extension for AI bilingual webpage translatio
 - [subAgent workflow](./subAgent.md)
 - [Phase 1 progress](./docs/Phase-1-step.md)
 - [Usage guide](./docs/USAGE.md)
+- [Next development evaluation](./docs/NEXT_DEVELOPMENT_EVALUATION.md)
 
 ## Development
 

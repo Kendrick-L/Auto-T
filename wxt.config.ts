@@ -2,6 +2,9 @@ import { defineConfig } from 'wxt';
 
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
+  vite: () => ({
+    envPrefix: ['VITE_', 'WXT_', 'DEEPSEEK_'],
+  }),
   manifest: {
     name: 'Auto-T',
     description: 'AI bilingual webpage translation powered by DeepSeek.',

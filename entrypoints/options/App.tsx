@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { getSettings, saveSettings, type UserSettings } from '@/src/storage/settings-store';
+import { hasBundledDeepSeekApiKey } from '@/src/config/env';
 import { addGlossaryItem, getGlossaryItems, removeGlossaryItem, type GlossaryItem } from '@/src/storage/glossary-store';
 
 export function App() {
@@ -53,8 +54,9 @@ export function App() {
             type="password"
             value={settings.deepseekApiKey}
             onChange={(event) => setSettings({ ...settings, deepseekApiKey: event.target.value })}
-            placeholder="sk-..."
+            placeholder={hasBundledDeepSeekApiKey() ? 'Using .env key unless overridden' : 'sk-...'}
           />
+          {hasBundledDeepSeekApiKey() ? <small>Environment key detected. This field can override it locally.</small> : null}
         </label>
 
         <label>
