@@ -7,29 +7,100 @@ import {
 import type { UserSettings } from '@/src/storage/settings-store';
 import type { TranslatedSegment } from '@/src/translation/types';
 
+export type RenderTranslationResult = {
+  id: string;
+  status: 'inserted' | 'updated' | 'missing-source';
+  sourceText?: string;
+  translation: string;
+  placement?: TranslationPlacement;
+  anchor?: ElementSnapshot;
+  source?: ElementSnapshot;
+  translationNode?: ElementSnapshot;
+};
+
+const TRANSLATION_INNER_CLASS = 'auto-t-translation-inner';
+type TranslationPlacement = 'inline-inside-source' | 'after-source';
+type PlacementResult = {
+  anchor: HTMLElement;
+  placement: TranslationPlacement;
+};
+type ElementSnapshot = {
+  tagName: string;
+  className: string;
+  text: string;
+  rect: {
+    bottom: number;
+    height: number;
+    left: number;
+    right: number;
+    top: number;
+    width: number;
+  };
+  style: {
+    display: string;
+    visibility: string;
+    opacity: string;
+    overflow: string;
+    position: string;
+    whiteSpace: string;
+    zIndex: string;
+  };
+  outerHTML: string;
+};
+
 export function renderTranslations(segments: TranslatedSegment[], displayMode: UserSettings['displayMode']) {
   injectStyle();
+  const results: RenderTranslationResult[] = [];
 
   for (const segment of segments) {
     const source = document.querySelector<HTMLElement>(`[${EXTENSION_SEGMENT_ATTR}="${CSS.escape(segment.id)}"]`);
-    if (!source) continue;
+    if (!source) {
+      results.push({
+        id: segment.id,
+        status: 'missing-source',
+        translation: segment.translation,
+      });
+      continue;
+    }
     source.classList.toggle(EXTENSION_SOURCE_HIDDEN_CLASS, displayMode === 'translation-only');
+    const sourceText = getSourceText(source);
 
     const existing = document.querySelector<HTMLElement>(`[${EXTENSION_TRANSLATION_ATTR}="${CSS.escape(segment.id)}"]`);
     if (existing) {
-      existing.textContent = segment.translation;
+      setTranslationText(existing, segment.translation);
       inheritSourceTypography(source, existing);
-      placeTranslation(source, existing, displayMode);
+      const placementResult = placeTranslation(source, existing, displayMode);
+      results.push({
+        id: segment.id,
+        status: 'updated',
+        sourceText,
+        translation: segment.translation,
+        placement: placementResult.placement,
+        anchor: snapshotElement(placementResult.anchor),
+        source: snapshotElement(source),
+        translationNode: snapshotElement(existing),
+      });
       continue;
     }
 
-    const translation = document.createElement('div');
+    const translation = createTranslationElement(segment.id, segment.translation);
     translation.className = EXTENSION_TRANSLATION_CLASS;
     translation.setAttribute(EXTENSION_TRANSLATION_ATTR, segment.id);
-    translation.textContent = segment.translation;
     inheritSourceTypography(source, translation);
-    placeTranslation(source, translation, displayMode);
+    const placementResult = placeTranslation(source, translation, displayMode);
+    results.push({
+      id: segment.id,
+      status: 'inserted',
+      sourceText,
+      translation: segment.translation,
+      placement: placementResult.placement,
+      anchor: snapshotElement(placementResult.anchor),
+      source: snapshotElement(source),
+      translationNode: snapshotElement(translation),
+    });
   }
+
+  return results;
 }
 
 function inheritSourceTypography(source: HTMLElement, translation: HTMLElement) {
@@ -43,20 +114,49 @@ function inheritSourceTypography(source: HTMLElement, translation: HTMLElement) 
   translation.style.color = sourceStyle.color;
 }
 
-function placeTranslation(source: HTMLElement, translation: HTMLElement, displayMode: UserSettings['displayMode']) {
+function createTranslationElement(segmentId: string, translationText: string) {
+  const wrapper = document.createElement('span');
+  wrapper.className = EXTENSION_TRANSLATION_CLASS;
+  wrapper.setAttribute(EXTENSION_TRANSLATION_ATTR, segmentId);
+  wrapper.setAttribute('translate', 'no');
+
+  const lineBreak = document.createElement('br');
+  const inner = document.createElement('span');
+  inner.className = TRANSLATION_INNER_CLASS;
+  inner.textContent = translationText;
+
+  wrapper.append(lineBreak, inner);
+  return wrapper;
+}
+
+function setTranslationText(translation: HTMLElement, text: string) {
+  const inner = translation.querySelector<HTMLElement>(`.${TRANSLATION_INNER_CLASS}`);
+  if (inner) {
+    inner.textContent = text;
+    return;
+  }
+
+  translation.textContent = '';
+  translation.append(document.createElement('br'));
+  const nextInner = document.createElement('span');
+  nextInner.className = TRANSLATION_INNER_CLASS;
+  nextInner.textContent = text;
+  translation.append(nextInner);
+}
+
+function placeTranslation(
+  source: HTMLElement,
+  translation: HTMLElement,
+  displayMode: UserSettings['displayMode'],
+): PlacementResult {
   if (displayMode === 'translation-only') {
     source.insertAdjacentElement('afterend', translation);
-    return;
+    return { anchor: source, placement: 'after-source' };
   }
 
-  const sourceStyle = window.getComputedStyle(source);
-  const isInline = sourceStyle.display.startsWith('inline');
-  if (isInline) {
-    source.insertAdjacentElement('afterend', translation);
-    return;
-  }
-
-  source.appendChild(translation);
+  const anchor = findLastTextAnchor(source) ?? source;
+  anchor.appendChild(translation);
+  return { anchor, placement: 'inline-inside-source' };
 }
 
 function injectStyle() {
@@ -66,19 +166,101 @@ function injectStyle() {
   style.id = 'auto-t-style';
   style.textContent = `
     .${EXTENSION_TRANSLATION_CLASS} {
-      display: block;
-      width: 100%;
+      display: inline;
       box-sizing: border-box;
-      clear: both;
-      margin: 6px 0 0;
-      padding-left: 8px;
-      border-left: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+      margin: 0;
+      padding: 0;
+      border: 0;
       opacity: 0.86;
-      white-space: normal;
+      white-space: inherit;
+    }
+    .${EXTENSION_TRANSLATION_CLASS}.${EXTENSION_TRANSLATION_CLASS} {
+      font: inherit;
+      color: inherit;
+    }
+    .${TRANSLATION_INNER_CLASS} {
+      display: inline;
+      font: inherit;
+      color: inherit;
+      white-space: inherit;
     }
     .${EXTENSION_SOURCE_HIDDEN_CLASS} {
       display: none !important;
     }
   `;
   document.documentElement.appendChild(style);
+}
+
+function findLastTextAnchor(root: HTMLElement) {
+  let lastTextNode: Text | null = null;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const text = node.textContent?.trim();
+      if (!text) return NodeFilter.FILTER_REJECT;
+
+      const parent = node.parentElement;
+      if (!parent || parent.closest(`.${EXTENSION_TRANSLATION_CLASS}`)) {
+        return NodeFilter.FILTER_REJECT;
+      }
+
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  });
+
+  let node = walker.nextNode();
+  while (node) {
+    lastTextNode = node as Text;
+    node = walker.nextNode();
+  }
+
+  return lastTextNode?.parentElement ?? null;
+}
+
+function getSourceText(element: HTMLElement) {
+  const parts: string[] = [];
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = node.parentElement;
+      if (parent?.closest(`.${EXTENSION_TRANSLATION_CLASS}`)) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  });
+
+  let node = walker.nextNode();
+  while (node) {
+    parts.push(node.textContent ?? '');
+    node = walker.nextNode();
+  }
+
+  return parts.join(' ').replace(/\s+/g, ' ').trim();
+}
+
+function snapshotElement(element: HTMLElement): ElementSnapshot {
+  const rect = element.getBoundingClientRect();
+  const style = window.getComputedStyle(element);
+  return {
+    tagName: element.tagName.toLowerCase(),
+    className: String(element.className || ''),
+    text: (element.innerText || element.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 2000),
+    rect: {
+      bottom: Math.round(rect.bottom * 100) / 100,
+      height: Math.round(rect.height * 100) / 100,
+      left: Math.round(rect.left * 100) / 100,
+      right: Math.round(rect.right * 100) / 100,
+      top: Math.round(rect.top * 100) / 100,
+      width: Math.round(rect.width * 100) / 100,
+    },
+    style: {
+      display: style.display,
+      visibility: style.visibility,
+      opacity: style.opacity,
+      overflow: style.overflow,
+      position: style.position,
+      whiteSpace: style.whiteSpace,
+      zIndex: style.zIndex,
+    },
+    outerHTML: element.outerHTML.slice(0, 6000),
+  };
 }

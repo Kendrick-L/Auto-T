@@ -11,7 +11,7 @@ export default defineConfig({
     description: 'AI bilingual webpage translation powered by DeepSeek.',
     version: packageJson.version,
     permissions: ['storage', 'activeTab', 'scripting'],
-    host_permissions: ['https://api.deepseek.com/*'],
+    host_permissions: ['https://api.deepseek.com/*', 'http://127.0.0.1:38475/*', 'http://localhost:38475/*'],
     action: {
       default_title: 'Auto-T',
     },

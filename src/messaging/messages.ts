@@ -19,6 +19,7 @@ export type ExtensionMessage =
         pageTitle: string;
         pageUrl: string;
         force?: boolean;
+        debugLogging?: boolean;
       };
     }
   | {

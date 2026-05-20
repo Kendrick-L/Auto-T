@@ -8,6 +8,7 @@ export type UserSettings = {
   displayMode: 'bilingual' | 'translation-only';
   autoTranslate: boolean;
   enableCache: boolean;
+  debugLogging: boolean;
 };
 
 const SETTINGS_KEY = 'autoTSettings';
@@ -20,6 +21,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   displayMode: 'bilingual',
   autoTranslate: false,
   enableCache: true,
+  debugLogging: false,
 };
 
 export async function getSettings(): Promise<UserSettings> {

@@ -13,7 +13,7 @@ stage/m1-mvp-stability
 Current development branch:
 
 ```text
-agent/m1/prescan-auto-style
+agent/m1/debug-segment-console
 ```
 
 ## Current Goal
@@ -36,6 +36,13 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Deep DOM capture and vertical layout refinement | Done | `agent/m1/deep-dom-vertical-layout` | Captures deeply nested text containers and stacks translations below source text with slightly smaller typography. |
 | Paragraph capture and version bump | In Progress | `agent/m1/paragraph-capture-version-bump` | Fixes paragraph capture when text is nested under inline children and bumps extension version for Chrome reload/publish. |
 | Text-node scanner | Done | `agent/m1/text-node-scanner` | Replaces tag-first scanning with visible TextNode scanning so text inside arbitrary tags can be captured. |
+| Debug pipeline console logging | Done | `agent/m1/debug-segment-console` | Adds scan, LLM, parser, and render console diagnostics to isolate missed translation stages. |
+| Sibling translation insertion | Superseded | `agent/m1/debug-segment-console` | Verified that external sibling insertion can still fail in rich-text containers; replaced by inline rich-text insertion for bilingual mode. |
+| Inline rich-text insertion | Done | `agent/m1/debug-segment-console` | Uses a unified inline wrapper inside the source text flow to match rich-text/Markdown layouts more closely. |
+| Local debug log capture | Done | `agent/m1/debug-segment-console` | Adds a localhost debug server that persists scan, LLM, and render DOM snapshots into `debug-logs/`. |
+| Extension reload guard | Done | `agent/m1/debug-segment-console` | Prevents stale content scripts from throwing uncaught `Extension context invalidated` errors after Chrome extension reload. |
+| Background debug serialization fix | Done | `agent/m1/debug-segment-console` | Keeps service-worker debug records as structured JSON instead of falling back to `[object Object]`. |
+| Batch fallback and partial render | Done | `agent/m1/debug-segment-console` | Repairs common malformed JSON responses and retries failed batches by single segment so successful translations still render. |
 
 ## Completed Capabilities
 
@@ -60,6 +67,12 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Paragraphs with nested inline text are not skipped in favor of child `span/strong/em` nodes.
 - Extension version is bumped when a publishable update is prepared.
 - Scanner starts from visible text nodes rather than a fixed tag whitelist.
+- Debug logging can print captured text, DeepSeek batches/responses, parsed translations, and render insertion status.
+- Renderer can insert translations inside the source text flow using an inline wrapper and line break for rich-text pages.
+- Local debug server can persist console diagnostics and inserted-node snapshots into the repo for later analysis.
+- Content script safely stops Chrome API work after extension reload and asks the user to refresh the page.
+- Background debug logging serializes structured records safely in service-worker contexts.
+- Translation service no longer drops all successful batches when one later batch returns malformed JSON.
 
 ## Current Gaps
 
@@ -95,6 +108,13 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] Paragraph capture keeps `p` nodes even when text is nested in inline children.
 - [x] Extension/package version bumped for this update.
 - [x] Text-node-first scanning implemented for arbitrary tag nesting.
+- [x] Debug pipeline logging implemented behind an Options switch.
+- [x] Translation insertion avoids external block nodes for bilingual rich-text paragraphs.
+- [x] Rich-text insertion uses inline wrapper placement for bilingual mode.
+- [x] Debug logs can be written to `debug-logs/auto-t-latest.json`.
+- [x] Stale content scripts handle extension reload without uncaught errors.
+- [x] Background debug logs preserve structured batch details.
+- [x] Batch-level parse failures retry individually and return partial successful translations.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real Chrome extension page-translation smoke test recorded.
 

@@ -121,6 +121,16 @@ export function App() {
           Enable translation cache
         </label>
 
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={settings.debugLogging}
+            onChange={(event) => setSettings({ ...settings, debugLogging: event.target.checked })}
+          />
+          Debug console logging
+          <small>Print scan, LLM, and render diagnostics to DevTools. Disable it on sensitive pages.</small>
+        </label>
+
         <button type="submit">Save Settings</button>
         {saved ? <p className="saved">Saved</p> : null}
       </form>

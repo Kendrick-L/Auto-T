@@ -11,6 +11,7 @@ export type TranslateRequest = {
   force?: boolean;
   settings: UserSettings;
   glossary: GlossaryItem[];
+  debugLogging?: boolean;
 };
 
 export type TranslatedSegment = {

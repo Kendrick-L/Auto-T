@@ -50,7 +50,13 @@ label {
 .check {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.check small {
+  flex-basis: 100%;
+  margin: -2px 0 0 22px;
 }
 
 input,

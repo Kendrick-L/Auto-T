@@ -12,6 +12,7 @@ Current MVP features:
 - Switch between bilingual and translation-only display modes.
 - Restore the page by removing inserted translations.
 - Configure DeepSeek API Key, languages, translation mode, cache, and glossary.
+- Enable temporary debug console logging to inspect scan, LLM, and render stages.
 - Cache translations to reduce repeated API calls.
 
 Not supported yet:
@@ -79,7 +80,9 @@ npm run zip
 
 After each update, run `npm run build`, then click Reload on the Auto-T extension card in `chrome://extensions`. The extension version is bumped for publishable updates so Chrome shows a new version.
 
-Current version: `0.1.2`.
+Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
+
+Current version: `0.1.9`.
 
 ## Configure DeepSeek
 
@@ -168,12 +171,65 @@ Recommended workflow:
 
 For hands-free reading, enable `Auto visible on scroll`. It is off by default because every newly translated viewport can consume DeepSeek API quota.
 
+## Debug Translation Pipeline
+
+Enable `Debug console logging` in Options when a page misses translations.
+
+To persist the debug output into this codebase, start the local log server before testing:
+
+```bash
+npm run debug:server
+```
+
+The server writes:
+
+```text
+debug-logs/auto-t-latest.json
+debug-logs/auto-t-latest.jsonl
+```
+
+For one page only, you can also open DevTools on that page and run:
+
+```js
+localStorage.setItem('AUTO_T_DEBUG', '1');
+```
+
+Reload the page after setting it. Disable it with:
+
+```js
+localStorage.removeItem('AUTO_T_DEBUG');
+```
+
+Then open DevTools on the target webpage and run `Visible`, `Page`, or `Retry visible`.
+
+The console prints grouped logs with the prefix `[Auto-T Debug]`:
+
+- `scan ... segments`: text captured from the DOM scanner.
+- `sending segments to background`: text sent from the content script.
+- `translation cache split`: whether each request is cached or sent to DeepSeek.
+- `DeepSeek batch ... source`: source text sent to the LLM.
+- `DeepSeek raw content`: raw model response.
+- `DeepSeek parsed response`: parsed translation objects.
+- `render result`: whether each translation was inserted, updated, or failed because the source node was missing.
+
+`render result` also includes source, anchor, and inserted translation node snapshots with `outerHTML`, bounding rect, and computed style.
+
+Use this to identify the failing stage:
+
+- Missing from `scan`: DOM scanner/filtering issue.
+- Present in `scan` but absent from `DeepSeek batch`: cache/request routing issue.
+- Present in batch but missing or malformed in `DeepSeek parsed response`: LLM or parser issue.
+- Present in parsed response but `missing-source` in `render result`: DOM changed before insertion.
+- Present with `inserted` or `updated` but not visible: renderer/CSS/layout issue.
+
+Turn debug logging off after diagnosis, especially on private pages.
+
 ## Display Modes
 
 `Bilingual`:
 
 - Keeps the original text visible.
-- Inserts translation under the original segment where the page layout allows.
+- Inserts translation inside the original text flow with an inline wrapper and a line break.
 - Uses the source text family, color, weight, and line height with a slightly smaller font size.
 
 `Translation only`:

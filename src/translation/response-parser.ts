@@ -3,7 +3,7 @@ import type { TranslatedSegment } from '@/src/translation/types';
 
 export function parseTranslationResponse(content: string, sourceSegments: PageSegment[]): TranslatedSegment[] {
   const json = extractJson(content);
-  const parsed = parseSegments(JSON.parse(json));
+  const parsed = parseSegments(parseJsonWithRepair(json));
   const sourceById = new Map(sourceSegments.map((segment) => [segment.id, segment.text]));
 
   return parsed.segments
@@ -88,4 +88,23 @@ function extractJson(content: string) {
   if (start >= 0 && end > start) return trimmed.slice(start, end + 1);
 
   throw new Error('DeepSeek response did not contain JSON.');
+}
+
+function parseJsonWithRepair(json: string): unknown {
+  try {
+    return JSON.parse(json);
+  } catch (error) {
+    const repaired = repairCommonJsonTypos(json);
+    if (repaired === json) throw error;
+
+    try {
+      return JSON.parse(repaired);
+    } catch {
+      throw error;
+    }
+  }
+}
+
+function repairCommonJsonTypos(json: string) {
+  return json.replace(/"([A-Za-z][A-Za-z0-9_]*)"\s*>/g, '"$1":');
 }

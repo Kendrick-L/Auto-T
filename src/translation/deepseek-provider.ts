@@ -1,6 +1,7 @@
 import { buildTranslationPrompt } from '@/src/translation/prompt-builder';
 import { getEffectiveDeepSeekApiKey } from '@/src/storage/settings-store';
 import { parseTranslationResponse } from '@/src/translation/response-parser';
+import { debugGroup, debugSegments } from '@/src/utils/debug-log';
 import type { TranslateRequest, TranslatedSegment } from '@/src/translation/types';
 
 type DeepSeekChatResponse = {
@@ -21,7 +22,13 @@ export async function translateWithDeepSeek(request: TranslateRequest): Promise<
     throw new Error('DeepSeek API key is missing.');
   }
 
+  debugSegments(request.debugLogging, 'DeepSeek request source segments', request.segments);
   const response = await requestDeepSeek(request, apiKey);
+  debugGroup(request.debugLogging, 'DeepSeek HTTP response', {
+    ok: response.ok,
+    status: response.status,
+    statusText: response.statusText,
+  });
 
   if (!response.ok) {
     throw new Error(formatDeepSeekError(response));
@@ -33,7 +40,10 @@ export async function translateWithDeepSeek(request: TranslateRequest): Promise<
     throw new Error('DeepSeek response was empty.');
   }
 
-  return parseTranslationResponse(content, request.segments);
+  debugGroup(request.debugLogging, 'DeepSeek raw content', content);
+  const translated = parseTranslationResponse(content, request.segments);
+  debugSegments(request.debugLogging, 'DeepSeek parsed response', translated);
+  return translated;
 }
 
 async function requestDeepSeek(request: TranslateRequest, apiKey: string) {
