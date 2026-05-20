@@ -34,6 +34,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Key source UI and DeepSeek smoke script | Done | `agent/m1/key-source-smoke-test` | Shows active key source and adds a minimal DeepSeek smoke test command. |
 | Prescan, auto visible, and typography fix | Done | `agent/m1/prescan-auto-style` | Pre-scans viewport segments, adds optional scroll auto-translate, and makes translated text inherit source typography. |
 | Deep DOM capture and vertical layout refinement | Done | `agent/m1/deep-dom-vertical-layout` | Captures deeply nested text containers and stacks translations below source text with slightly smaller typography. |
+| Paragraph capture and version bump | In Progress | `agent/m1/paragraph-capture-version-bump` | Fixes paragraph capture when text is nested under inline children and bumps extension version for Chrome reload/publish. |
 
 ## Completed Capabilities
 
@@ -55,6 +56,8 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Translation typography inherits source font size, family, weight, line height, letter spacing, and color.
 - Deep DOM scanning can capture text stored in nested `div/span/strong/em` structures.
 - Bilingual translations prefer vertical stacking under the source block and use a slightly smaller font.
+- Paragraphs with nested inline text are not skipped in favor of child `span/strong/em` nodes.
+- Extension version is bumped when a publishable update is prepared.
 
 ## Current Gaps
 
@@ -87,6 +90,8 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] Translation typography inherits source style.
 - [x] Deep nested text containers are scanned.
 - [x] Translation layout stacks below source blocks with slightly smaller text.
+- [x] Paragraph capture keeps `p` nodes even when text is nested in inline children.
+- [x] Extension/package version bumped for this update.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real Chrome extension page-translation smoke test recorded.
 
