@@ -151,6 +151,7 @@ stage/m1-mvp-stability
 - 增加 `npm run compile` 和 `npm run build` 的固定验收流程。
 - 增加 page rule 扫描层，先内置 Mobalytics/GitHub 的内容容器和排除规则。
 - 增加扫描器自动化测试，覆盖站点规则、排除规则、短标题和短按钮文本。
+- 增加轻量 MutationObserver，在动态内容插入后刷新可视区域扫描并复用自动可视翻译。
 
 验收：
 
@@ -162,6 +163,7 @@ stage/m1-mvp-stability
 - Restore 后页面移除所有 Auto-T 译文节点。
 - 使用说明中包含 DeepSeek API Key、缓存和隐私边界。
 - 本地开发可通过 `.env` 提供 DeepSeek API Key，并说明构建期注入风险。
+- 开启自动可视翻译后，新增可见内容可被自动扫描和翻译。
 
 ## Milestone 2: 翻译质量增强
 
@@ -214,7 +216,7 @@ stage/m1-mvp-stability
 任务：
 
 - MutationObserver 监听新增内容。
-- 翻译队列节流，避免无限重复扫描。
+- 翻译队列节流，避免无限重复扫描；M1 已有轻量 observer，M4 继续补站点级队列和规则。
 - 站点适配层：GitHub、YouTube、Reddit、X、Google Search、新闻站点。
 - 域名级设置：自动翻译、跳过站点、默认模式。
 

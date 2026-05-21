@@ -15,6 +15,7 @@ Current MVP features:
 - Enable temporary debug console logging to inspect scan, LLM, and render stages.
 - Show per-text loading indicators while visible/page/scroll translations are running.
 - Use built-in page rules for selected sites to improve content scanning.
+- Refresh visible scanning when dynamic page content is inserted.
 - Cache translations to reduce repeated API calls.
 
 Not supported yet:
@@ -90,7 +91,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.15`.
+Current version: `0.1.16`.
 
 ## Configure DeepSeek
 
@@ -177,7 +178,7 @@ Recommended workflow:
 4. Continue scrolling and click `Visible` again for the next section.
 5. Use `Page` only when you want broader coverage.
 
-For hands-free reading, enable `Auto visible on scroll`. It is off by default because every newly translated viewport can consume DeepSeek API quota.
+For hands-free reading, enable `Auto visible on scroll`. It is off by default because every newly translated viewport can consume DeepSeek API quota. When enabled, Auto-T also watches for newly inserted visible page content and routes it through the same auto visible flow.
 
 ## Debug Translation Pipeline
 

@@ -3,6 +3,7 @@ import { clearTranslationLoading, renderTranslationLoading, renderTranslations }
 import { restorePage } from '@/src/core/restore';
 import { getEffectiveDeepSeekApiKey, getSettings } from '@/src/storage/settings-store';
 import { debugError, debugGroup, debugSegments, isLocalDebugEnabled } from '@/src/utils/debug-log';
+import { EXTENSION_TRANSLATION_CLASS } from '@/src/constants';
 import type { ExtensionMessage, ExtensionResponse } from '@/src/messaging/messages';
 import type { PageSegment } from '@/src/core/dom-scanner';
 import type { UserSettings } from '@/src/storage/settings-store';
@@ -12,11 +13,14 @@ const VISIBLE_LIMIT = 24;
 const PAGE_LIMIT = 80;
 const PRESCAN_TTL_MS = 1800;
 const SCROLL_IDLE_MS = 650;
+const MUTATION_PRESCAN_DELAY_MS = 180;
+const MUTATION_AUTO_TRANSLATE_DELAY_MS = 850;
 
 let visibleSegmentsCache: PageSegment[] = [];
 let visibleSegmentsCachedAt = 0;
 let prescanTimer: number | undefined;
 let autoTranslateTimer: number | undefined;
+let mutationObserver: MutationObserver | undefined;
 let autoTranslateInFlight = false;
 let lastAutoTranslateSignature = '';
 
@@ -24,6 +28,7 @@ export default defineContentScript({
   matches: ['<all_urls>'],
   main() {
     schedulePrescan(150);
+    startMutationObserver();
     window.addEventListener('scroll', handleViewportChange, { passive: true });
     window.addEventListener('resize', handleViewportChange, { passive: true });
 
@@ -64,6 +69,28 @@ function handleViewportChange() {
   if (isExtensionContextActive()) {
     scheduleAutoTranslate();
   }
+}
+
+function startMutationObserver() {
+  if (!document.body) {
+    document.addEventListener('DOMContentLoaded', startMutationObserver, { once: true });
+    return;
+  }
+  if (mutationObserver) return;
+
+  mutationObserver = new MutationObserver((mutations) => {
+    if (!mutations.some(isRelevantPageMutation)) return;
+
+    schedulePrescan(MUTATION_PRESCAN_DELAY_MS);
+    if (isExtensionContextActive()) {
+      scheduleAutoTranslate(MUTATION_AUTO_TRANSLATE_DELAY_MS);
+    }
+  });
+
+  mutationObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
 }
 
 function schedulePrescan(delayMs: number) {
@@ -190,11 +217,11 @@ async function renderLoadingWithCurrentSettings(segments: PageSegment[], debugLo
   debugGroup(debugLogging ?? settings?.debugLogging, 'loading render result', renderResults);
 }
 
-function scheduleAutoTranslate() {
+function scheduleAutoTranslate(delayMs = SCROLL_IDLE_MS) {
   if (autoTranslateTimer) window.clearTimeout(autoTranslateTimer);
   autoTranslateTimer = window.setTimeout(() => {
     void autoTranslateVisibleSegments();
-  }, SCROLL_IDLE_MS);
+  }, delayMs);
 }
 
 async function autoTranslateVisibleSegments() {
@@ -229,6 +256,35 @@ async function autoTranslateVisibleSegments() {
 function hasRenderedTranslation(segmentId: string) {
   const translation = document.querySelector<HTMLElement>(`[data-auto-t-for="${CSS.escape(segmentId)}"]`);
   return Boolean(translation && !translation.classList.contains('auto-t-translation-loading'));
+}
+
+function isRelevantPageMutation(mutation: MutationRecord) {
+  if (mutation.type !== 'childList' || mutation.addedNodes.length === 0) return false;
+  if (isAutoTNode(mutation.target)) return false;
+
+  return Array.from(mutation.addedNodes).some((node) => !isAutoTNode(node) && nodeMightContainText(node));
+}
+
+function isAutoTNode(node: Node) {
+  if (node.nodeType !== Node.ELEMENT_NODE) return false;
+
+  const element = node as Element;
+  return Boolean(
+    element.closest(`.${EXTENSION_TRANSLATION_CLASS}`) ||
+      element.closest('#auto-t-translation-layer') ||
+      element.closest('#auto-t-style'),
+  );
+}
+
+function nodeMightContainText(node: Node) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return Boolean(node.textContent?.trim());
+  }
+
+  if (node.nodeType !== Node.ELEMENT_NODE) return false;
+
+  const element = node as Element;
+  return Boolean(element.textContent?.trim());
 }
 
 async function getContentSettings(): Promise<UserSettings | null> {

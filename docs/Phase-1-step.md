@@ -51,6 +51,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Segment loading indicator | Done | `agent/m1/debug-segment-console` | Shows a per-segment spinner placeholder while visible/page/scroll translation requests are in flight. |
 | Rule-aware DOM scan | Done | `agent/m1/debug-segment-console` | Adds a page-rule layer for site-specific containers, excludes, and extra block selectors without changing insertion strategy. |
 | Scanner smoke tests | Done | `agent/m1/debug-segment-console` | Adds Vitest coverage for Mobalytics/GitHub page rules, generic scanning, short headings, and short button labels. |
+| Dynamic content observer | Done | `agent/m1/debug-segment-console` | Adds a MutationObserver that refreshes visible pre-scan and triggers auto visible translation for newly inserted page content. |
 
 ## Completed Capabilities
 
@@ -89,12 +90,13 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Text currently being translated shows a small inline loading spinner before the translated text is returned.
 - DOM scanning can use built-in page rules for site-specific content containers and exclusion selectors.
 - Automated scanner tests cover built-in page rules and short UI labels/headings.
+- Dynamic page content can trigger a refreshed visible scan and reuse the auto visible translation flow.
 
 ## Current Gaps
 
 - No automated browser test yet.
 - No manual Chrome extension page-translation test recorded yet.
-- No full dynamic webpage MutationObserver flow yet; current auto visible scroll support is a lightweight M1.5 mitigation.
+- Dynamic webpage support is still a lightweight M1.5 mitigation; it does not yet include a durable site-level queue, per-domain settings, or broad SPA test coverage.
 - No selection popup, hover translation, or input box translation yet.
 - No PDF or subtitle support yet.
 - Manual Chrome and real DeepSeek smoke test evidence still need to be recorded.
@@ -139,6 +141,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] In-flight visible/page/scroll translations show per-segment loading indicators.
 - [x] DOM scanner supports page-rule containers, excludes, and extra block selectors.
 - [x] Scanner smoke tests cover rule-aware scanning and short button/heading text.
+- [x] MutationObserver refreshes visible scanning for newly inserted page content.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real Chrome extension page-translation smoke test recorded.
 

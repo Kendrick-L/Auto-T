@@ -26,6 +26,7 @@
 - API Key 来源状态提示：Options 输入 / `.env` fallback / missing。
 - 预扫描当前视口 segments，降低点击翻译时的解析等待。
 - 轻量 `Auto visible on scroll`，滚动停止后翻译当前视口未翻译段落。
+- 轻量 MutationObserver，动态内容插入后刷新当前视口扫描并复用自动可视翻译。
 - 隐私边界继续完善：缓存、发送内容、构建期 key 暴露风险。
 - 扫描器自动化测试，先覆盖 page rule 和短文本捕获，降低站点规则迭代风险。
 
@@ -40,7 +41,7 @@ UI：
 
 - `.env` key 在扩展构建后会进入产物，不适合公开发布或共享构建包。
 - 真实 API 测试会消耗 DeepSeek 额度。
-- `Auto visible on scroll` 会增加 API 请求，必须默认关闭，由用户主动开启。
+- `Auto visible on scroll` 和动态内容监听会增加 API 请求，必须默认关闭，由用户主动开启。
 
 ### P1: M2 翻译质量增强
 
@@ -87,7 +88,7 @@ UI：
 功能：
 
 - MutationObserver 增量扫描。
-- 翻译队列节流。
+- 翻译队列节流；当前 M1 只做轻量 observer，M4 需要补完整队列和站点策略。
 - 站点适配：GitHub、Google Search、YouTube、Reddit、X、新闻站点。
 - 域名级设置：自动翻译、默认模式、跳过站点。
 
