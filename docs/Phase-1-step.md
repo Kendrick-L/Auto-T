@@ -50,6 +50,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Button text scan | Done | `agent/m1/debug-segment-console` | Allows button and role button labels to be scanned and translated. |
 | Segment loading indicator | Done | `agent/m1/debug-segment-console` | Shows a per-segment spinner placeholder while visible/page/scroll translation requests are in flight. |
 | Rule-aware DOM scan | Done | `agent/m1/debug-segment-console` | Adds a page-rule layer for site-specific containers, excludes, and extra block selectors without changing insertion strategy. |
+| Scanner smoke tests | Done | `agent/m1/debug-segment-console` | Adds Vitest coverage for Mobalytics/GitHub page rules, generic scanning, short headings, and short button labels. |
 
 ## Completed Capabilities
 
@@ -87,6 +88,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Button labels are no longer hard-skipped by the scanner.
 - Text currently being translated shows a small inline loading spinner before the translated text is returned.
 - DOM scanning can use built-in page rules for site-specific content containers and exclusion selectors.
+- Automated scanner tests cover built-in page rules and short UI labels/headings.
 
 ## Current Gaps
 
@@ -136,6 +138,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] Button labels can be scanned for translation.
 - [x] In-flight visible/page/scroll translations show per-segment loading indicators.
 - [x] DOM scanner supports page-rule containers, excludes, and extra block selectors.
+- [x] Scanner smoke tests cover rule-aware scanning and short button/heading text.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real Chrome extension page-translation smoke test recorded.
 

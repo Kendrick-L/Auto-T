@@ -150,10 +150,12 @@ stage/m1-mvp-stability
 - 支持本地 `.env` DeepSeek API Key fallback，减少开发态手动配置。
 - 增加 `npm run compile` 和 `npm run build` 的固定验收流程。
 - 增加 page rule 扫描层，先内置 Mobalytics/GitHub 的内容容器和排除规则。
+- 增加扫描器自动化测试，覆盖站点规则、排除规则、短标题和短按钮文本。
 
 验收：
 
 - `npm run compile` 通过。
+- `npm test` 通过。
 - `npm run build` 通过。
 - 本地加载 `.output/chrome-mv3` 后可翻译普通英文网页到中文。
 - 重复点击翻译不会重复插入译文。

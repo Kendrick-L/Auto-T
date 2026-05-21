@@ -1,6 +1,6 @@
 {
   "name": "auto-t",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,6 +8,7 @@
     "build": "wxt build",
     "zip": "wxt zip",
     "compile": "tsc --noEmit",
+    "test": "vitest run",
     "smoke:deepseek": "node scripts/deepseek-smoke.mjs",
     "debug:server": "node scripts/debug-log-server.mjs"
   },
@@ -22,7 +23,9 @@
     "@types/chrome": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "happy-dom": "^20.9.0",
     "typescript": "latest",
+    "vitest": "^4.1.7",
     "wxt": "latest"
   }
 }

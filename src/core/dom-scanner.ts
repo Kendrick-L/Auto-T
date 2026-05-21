@@ -11,6 +11,7 @@ export type PageSegment = {
 
 export type ScanPageSegmentsOptions = {
   limit?: number;
+  pageUrl?: string;
   viewportOnly?: boolean;
 };
 
@@ -69,7 +70,7 @@ const HARD_SKIP_SELECTOR = [
 
 export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSegment[] {
   const limit = options.limit ?? 80;
-  const pageRule = getActivePageRule();
+  const pageRule = getActivePageRule(options.pageUrl);
   const textNodes = collectTextNodes(options.viewportOnly ?? false, pageRule);
   const candidates = new Map<HTMLElement, string[]>();
 
@@ -91,7 +92,7 @@ export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSeg
     if (options.viewportOnly && !isInViewport(element)) continue;
 
     const text = normalizeText(parts.join(' '));
-    if (!isUsefulText(text)) continue;
+    if (!isUsefulText(text, element)) continue;
 
     const hash = stableTextHash(text);
     if (seen.has(hash)) continue;
@@ -179,12 +180,27 @@ function normalizeText(text: string) {
   return text.replace(/\s+/g, ' ').trim();
 }
 
-function isUsefulText(text: string) {
+function isUsefulText(text: string, element?: HTMLElement) {
+  if (isInteractiveLabel(element)) {
+    return text.length >= 3 && !/^[\d\s.,:/\\|()[\]{}#%+-]+$/.test(text);
+  }
+  if (isHeading(element)) {
+    return text.length >= 3 && !/^[\d\s.,:/\\|()[\]{}#%+-]+$/.test(text);
+  }
+
   if (text.length < 12) return false;
   if (text.length > 3500) return false;
   if (/^[\d\s.,:/\\|()[\]{}#%+-]+$/.test(text)) return false;
   if (text.split(/\s+/).length < 3 && text.length < 24) return false;
   return true;
+}
+
+function isInteractiveLabel(element?: HTMLElement) {
+  return Boolean(element?.matches('button,label,[role="button"],[role="option"]'));
+}
+
+function isHeading(element?: HTMLElement) {
+  return Boolean(element?.matches('h1,h2,h3,h4,h5,h6'));
 }
 
 function isVisible(element: HTMLElement) {
