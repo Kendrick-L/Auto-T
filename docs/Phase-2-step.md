@@ -26,7 +26,7 @@ Improve translation quality and professional control after the Phase 1 webpage t
 | --- | --- | --- | --- |
 | Domain profile prompt | Done | `agent/m1/debug-segment-console` | Adds a specialized domain profile setting for general, technical docs, legal, medical, finance, and product documentation. |
 | Nearby context prompt | Done | `agent/m1/debug-segment-console` | Adds nearby scanned segments to each DeepSeek batch prompt without sending the full page. |
-| Cache management UI and helpers | Partial | `agent/m1/debug-segment-console` | Options can show cache count and clear all cached translations. Storage helpers can clear recorded entries by hostname, but current-site UI is deferred until the translated page hostname can be identified safely. |
+| Cache management UI and helpers | Done | `agent/m1/debug-segment-console` | Options can show cache count and clear all cached translations. Popup identifies the active http/https hostname and can clear cached entries for the current site. |
 
 ## Completed Capabilities
 
@@ -39,13 +39,13 @@ Improve translation quality and professional control after the Phase 1 webpage t
 - Options includes cache status and a `Clear all` cache action.
 - Translation cache entries record the source hostname for new saves.
 - Storage helpers support cache stats, clearing all cache, and clearing cache entries for a recorded hostname.
+- Popup includes current-site cache status and `Clear site` for active http/https tabs.
 
 ## Current Gaps
 
 - No generated page-level summary yet; current context is nearby scanned segments only.
 - No domain-level or page-level glossary yet.
 - No glossary import/export yet.
-- Current-site cache clearing is not wired into the UI yet.
 - No DeepSeek model selector yet.
 - No manual quality benchmark recorded across GitHub, MDN, Wikipedia, and news pages.
 
@@ -59,14 +59,14 @@ Improve translation quality and professional control after the Phase 1 webpage t
 - [x] Nearby context affects translation cache key.
 - [x] Cache can be inspected and cleared globally from Options.
 - [x] Cache storage helper can clear entries by recorded hostname.
+- [x] Current-site cache clearing is available from the popup for active http/https tabs.
 - [ ] Domain/page glossary supported.
-- [ ] Current-site cache clearing is available from the UI.
 - [ ] DeepSeek model can be configured.
 - [ ] Quality smoke results recorded for representative pages.
 
 ## Next Recommended Step
 
-Wire current-site cache clearing into a safe UI entry point, then continue with glossary import/export or DeepSeek model selection.
+Continue with domain/page glossary support, glossary import/export, or DeepSeek model selection.
 
 ## New Window Handoff
 

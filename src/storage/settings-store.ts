@@ -1,6 +1,7 @@
 import { getBundledDeepSeekApiKey } from '@/src/config/env';
 
 export type UserSettings = {
+  extensionEnabled: boolean;
   deepseekApiKey: string;
   targetLang: 'zh-CN' | 'en' | 'ja' | 'ko';
   sourceLang: 'auto' | 'en' | 'zh-CN' | 'ja' | 'ko';
@@ -15,6 +16,7 @@ export type UserSettings = {
 const SETTINGS_KEY = 'autoTSettings';
 
 export const DEFAULT_SETTINGS: UserSettings = {
+  extensionEnabled: true,
   deepseekApiKey: '',
   targetLang: 'zh-CN',
   sourceLang: 'auto',

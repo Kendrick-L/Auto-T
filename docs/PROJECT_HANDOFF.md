@@ -11,8 +11,8 @@ Auto-T is a Chrome MV3 bilingual webpage translation extension powered by DeepSe
 - Repository: `git@github.com:Kendrick-L/Auto-T.git`
 - Working directory: `/Users/lvtong/Documents/Practice/Auto-T`
 - Current branch: `agent/m1/debug-segment-console`
-- Latest pushed commit at time of this handoff: `2c676c6 add nearby context to translation prompts`
-- Current package version in working tree: `0.1.21`
+- Latest pushed commit before current-site cache work: `7bb97c0 feat: add cache management controls`
+- Current package version in working tree: `0.1.22`
 
 Important: run this first in any new window:
 
@@ -23,30 +23,7 @@ git log --oneline -5 --decorate
 
 ## Current Worktree Warning
 
-The current worktree may include uncommitted WIP for a requested M1/M3 interaction enhancement:
-
-- Global `Pause translation` / `Resume translation` popup control.
-- Active vs paused Chrome toolbar icon.
-- `OFF` badge while paused.
-- Settings field `extensionEnabled`.
-- New icon assets under `public/icons`.
-- New action state helper under `src/action`.
-
-If these files are present in `git status`, do not discard them. Either finish and validate that WIP first, or explicitly leave it alone before continuing Phase 2 work.
-
-Likely WIP files:
-
-```text
-entrypoints/background.ts
-entrypoints/content.ts
-entrypoints/popup/App.tsx
-entrypoints/popup/style.css
-src/storage/settings-store.ts
-src/translation/translate-service.ts
-wxt.config.ts
-public/icons/*
-src/action/action-state.ts
-```
+Do not reset or discard local changes. Always start with `git status --short --branch` and inspect any WIP before editing. The pause/resume and toolbar icon work was completed in this branch, so new WIP should be treated as user work unless proven otherwise.
 
 ## Completed Phase 1 Summary
 
@@ -68,6 +45,8 @@ Completed:
 - Rich-text/Lexical portal rendering.
 - Restore support.
 - Debug console logging and local debug log server.
+- Global `Pause translation` / `Resume translation` popup control.
+- Active vs paused Chrome toolbar icon and `OFF` badge.
 - DeepSeek batch fallback and progressive render.
 - Manual smoke fixture and server.
 - Scanner and prompt builder tests.
@@ -97,6 +76,7 @@ Completed:
 - Prompt tests cover domain profile, glossary, and context injection.
 - Options shows translation cache count and can clear all local cache entries.
 - Cache storage helpers support stats, clearing all cache, and clearing entries by recorded hostname for newly saved cache entries.
+- Popup identifies the active http/https hostname and can clear current-site cache entries.
 
 Phase 2 current docs:
 
@@ -106,18 +86,18 @@ docs/Phase-2-step.md
 
 ## Recommended Next Phase 2 Task
 
-Wire current-site cache clearing into a safe UI entry point, or continue with glossary import/export / DeepSeek model selection.
+Continue with domain/page glossary support, glossary import/export, or DeepSeek model selection.
 
 Expected scope:
 
-- Reuse `clearCachedTranslationsForHostname` from `src/storage/cache-store.ts`.
-- Identify the translated page hostname from popup/content context rather than assuming Options can see it.
-- Add user-facing current-site cache cleanup only when hostname detection is safe.
+- Decide whether domain/page glossary should be stored by hostname, URL, or explicit user scope.
+- Add import/export controls if glossary editing remains local-only.
+- Add or update tests for glossary versioning and cache invalidation.
 - Update docs:
   - `docs/Phase-2-step.md`
   - `docs/USAGE.md`
   - `ITERATION_PLAN.md` if roadmap status changes.
-- Add or update cache behavior tests.
+- Avoid real DeepSeek requests unless API quota is explicitly allowed.
 
 Do not consume DeepSeek API quota for cache UI work.
 

@@ -118,6 +118,12 @@ function getVisibleSegments() {
 async function translatePage(scope: 'visible' | 'page', force: boolean): Promise<ExtensionResponse> {
   const settings = await getContentSettings();
   if (!settings) return extensionInvalidatedResponse();
+  if (!settings.extensionEnabled) {
+    return {
+      ok: false,
+      error: 'Auto-T is paused. Resume it from the popup to translate.',
+    };
+  }
 
   const debugLogging = settings.debugLogging || isLocalDebugEnabled();
   const segments =
@@ -231,7 +237,7 @@ async function autoTranslateVisibleSegments() {
   if (!settings) return;
 
   const debugLogging = settings.debugLogging || isLocalDebugEnabled();
-  if (!settings.autoTranslate || !getEffectiveDeepSeekApiKey(settings)) return;
+  if (!settings.extensionEnabled || !settings.autoTranslate || !getEffectiveDeepSeekApiKey(settings)) return;
 
   const untranslatedSegments = getVisibleSegments().filter((segment) => !hasRenderedTranslation(segment.id));
   if (untranslatedSegments.length === 0) return;

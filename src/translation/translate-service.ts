@@ -19,6 +19,10 @@ export async function translateSegments(
   onBatchTranslated?: (segments: TranslatedSegment[]) => void,
 ): Promise<TranslatedSegment[]> {
   const settings = await getSettings();
+  if (!settings.extensionEnabled) {
+    throw new Error('Auto-T is paused. Resume it from the popup to translate.');
+  }
+
   const glossary = await getGlossaryItems();
   const glossaryVersion = getGlossaryVersion(glossary);
   const debugLogging = Boolean(payload.debugLogging || settings.debugLogging);

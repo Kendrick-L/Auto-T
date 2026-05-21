@@ -53,6 +53,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Scanner smoke tests | Done | `agent/m1/debug-segment-console` | Adds Vitest coverage for Mobalytics/GitHub page rules, generic scanning, short headings, and short button labels. |
 | Dynamic content observer | Done | `agent/m1/debug-segment-console` | Adds a MutationObserver that refreshes visible pre-scan and triggers auto visible translation for newly inserted page content. |
 | Manual smoke fixture | Done | `agent/m1/debug-segment-console` | Adds a local fixture page and server for repeatable Chrome checks of visible/page/restore/dynamic content behavior. |
+| Pause switch and action icon | Done | `agent/m1/debug-segment-console` | Adds a global pause/resume control and active/paused Chrome toolbar icon state. |
 
 ## Completed Capabilities
 
@@ -93,6 +94,8 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - Automated scanner tests cover built-in page rules and short UI labels/headings.
 - Dynamic page content can trigger a refreshed visible scan and reuse the auto visible translation flow.
 - A local manual smoke page is available for repeatable Chrome extension checks.
+- Popup can pause Auto-T translation globally while keeping Restore available.
+- Chrome toolbar icon and `OFF` badge reflect active vs paused state.
 
 ## Current Gaps
 
@@ -145,6 +148,8 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] Scanner smoke tests cover rule-aware scanning and short button/heading text.
 - [x] MutationObserver refreshes visible scanning for newly inserted page content.
 - [x] Local manual smoke fixture and server are available.
+- [x] Global pause/resume switch blocks translation actions and automatic translation.
+- [x] Chrome action icon/badge reflects active and paused states.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real Chrome extension page-translation smoke test recorded.
 

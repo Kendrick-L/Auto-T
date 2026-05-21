@@ -12,8 +12,20 @@ export default defineConfig({
     version: packageJson.version,
     permissions: ['storage', 'activeTab', 'scripting'],
     host_permissions: ['https://api.deepseek.com/*', 'http://127.0.0.1:38475/*', 'http://localhost:38475/*'],
+    icons: {
+      16: 'icons/auto-t-enabled-16.png',
+      32: 'icons/auto-t-enabled-32.png',
+      48: 'icons/auto-t-enabled-48.png',
+      128: 'icons/auto-t-enabled-128.png',
+    },
     action: {
       default_title: 'Auto-T',
+      default_icon: {
+        16: 'icons/auto-t-enabled-16.png',
+        32: 'icons/auto-t-enabled-32.png',
+        48: 'icons/auto-t-enabled-48.png',
+        128: 'icons/auto-t-enabled-128.png',
+      },
     },
     options_ui: {
       page: 'options.html',

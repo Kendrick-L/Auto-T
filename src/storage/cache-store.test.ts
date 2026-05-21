@@ -94,6 +94,18 @@ describe('translation cache store', () => {
     await expect(getCacheStats('news.example.com')).resolves.toMatchObject({ totalItems: 1, siteItems: 1 });
   });
 
+  it('does not count hostless legacy entries as current-site cache', async () => {
+    await saveCachedTranslations(
+      [{ id: 'segment-1', source: 'Legacy cached text.', translation: '旧缓存文本。' }],
+      DEFAULT_SETTINGS,
+      'glossary-v1',
+    );
+
+    await expect(getCacheStats('docs.example.com')).resolves.toMatchObject({ totalItems: 1, siteItems: 0 });
+    await expect(clearCachedTranslationsForHostname('docs.example.com')).resolves.toBe(0);
+    await expect(getCacheStats()).resolves.toMatchObject({ totalItems: 1 });
+  });
+
   it('clears the full cache', async () => {
     await saveCachedTranslations(
       [{ id: 'segment-1', source: 'Cached text.', translation: '缓存文本。' }],

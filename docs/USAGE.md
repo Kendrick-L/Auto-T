@@ -19,6 +19,7 @@ Current MVP features:
 - Pause or resume translation from the popup; Chrome shows a paused badge when Auto-T is stopped.
 - Cache translations to reduce repeated API calls.
 - View local cache size and clear all cached translations from Options.
+- Clear cached translations for the current site from the popup.
 
 Not supported yet:
 
@@ -105,7 +106,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.21`.
+Current version: `0.1.22`.
 
 ## Configure DeepSeek
 
@@ -158,6 +159,7 @@ Current behavior:
 - Translation cache is stored locally through Chrome storage.
 - Cache can be disabled in Options.
 - Cached source and translated text can be cleared from Options with `Clear all`.
+- Cached translations for the active http/https site can be cleared from the popup with `Clear site`.
 - Glossary items are stored locally.
 
 Do not use real translation on sensitive pages unless you are comfortable sending the selected text, page title, and URL to DeepSeek.
@@ -178,6 +180,7 @@ Available actions:
 - `Page`: translates more of the page. This can be slower and may consume more API quota.
 - `Retry visible`: re-runs visible translation without cache.
 - `Restore`: removes Auto-T translations and restores hidden source text.
+- `Clear site`: removes cached translations for the current http/https hostname.
 - `Auto visible on scroll`: when enabled, translates untranslated visible text after scrolling stops.
 
 When Auto-T is paused:
@@ -323,7 +326,12 @@ In Options:
 - `Refresh` reloads the cache count.
 - `Clear all` removes locally cached source and translated text.
 
-After clearing cache, repeated translations may call DeepSeek again and consume API quota. Current-site cache clearing is prepared in storage helpers but not exposed in Options yet because the Options page cannot reliably identify the translated page hostname.
+In the popup:
+
+- `Site cache` shows the active http/https hostname and matching local cache entries.
+- `Clear site` removes cache entries saved for that hostname.
+
+After clearing cache, repeated translations may call DeepSeek again and consume API quota. Older cache entries saved before hostname metadata existed can still be removed with Options `Clear all`.
 
 ## Nearby Context
 
@@ -373,7 +381,8 @@ Manual Chrome test:
 11. Click `Resume translation`.
 12. Click `Restore`.
 13. Confirm translations are removed and hidden source text returns.
-14. Open Options, confirm `Cached translations` is visible, and use `Clear all` if cache cleanup needs verification.
+14. Confirm the popup shows `Site cache` on an http/https page and `Clear site` is available.
+15. Open Options, confirm `Cached translations` is visible, and use `Clear all` if cache cleanup needs verification.
 
 Suggested test URLs:
 
