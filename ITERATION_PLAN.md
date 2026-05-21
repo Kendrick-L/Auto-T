@@ -182,7 +182,8 @@ stage/m1-mvp-stability
 - 增加领域 Profile：通用、技术文档、法律、医学、金融、产品文档。
 - 增加 JSON 修复 fallback：模型返回代码块、前后废话、漏段、尾逗号、部分坏 segment 时可恢复。
 - 增加段落级失败 fallback，单批失败不影响整页。
-- 增加 DeepSeek 模型配置项：`deepseek-chat` 默认，可选 `deepseek-reasoner`，并纳入缓存 key。
+- 增加 DeepSeek 模型配置项：`Flash` 默认，可选 `Pro`，分别请求 DeepSeek `deepseek-v4-flash` / `deepseek-v4-pro`，并纳入缓存 key。
+- 增加中文源页面跳过：目标语言为中文时，检测到网页或交互目标原文已是中文则不触发 DeepSeek 请求。
 - 增加缓存和隐私策略：缓存清理、站点禁用缓存、敏感站点提醒。目前 Options 已支持查看缓存数量和全量清理，Popup 已支持按当前 http/https 站点清理带 hostname 的缓存条目。
 
 验收：
@@ -341,7 +342,7 @@ npm run zip
 需要额外参数时必须提示：
 
 - `DEEPSEEK_API_KEY`：用于真实翻译请求。
-- DeepSeek model：默认 `deepseek-chat`，如需 reasoner 必须明确。
+- DeepSeek model：默认 `Flash`，如需 `Pro` 必须明确。
 - target language：默认 `zh-CN`。
 - source language：默认 `auto`。
 - 测试 URL 列表：用于页面兼容性验证。

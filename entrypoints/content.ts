@@ -9,6 +9,7 @@ import {
   renderInteractionLoading,
   renderInteractionTranslation,
 } from '@/src/core/interaction-renderer';
+import { shouldSkipChineseSourceTranslation } from '@/src/core/language-detect';
 import { clearTranslationLoading, renderTranslationLoading, renderTranslations } from '@/src/core/renderer';
 import { restorePage } from '@/src/core/restore';
 import { getEffectiveDeepSeekApiKey, getSettings } from '@/src/storage/settings-store';
@@ -179,6 +180,16 @@ async function translatePage(scope: 'visible' | 'page', force: boolean): Promise
           viewportOnly: false,
         });
 
+  if (shouldSkipChineseSourceTranslation(settings, segments)) {
+    debugGroup(debugLogging, 'skip translation', {
+      reason: 'source appears to be Chinese and target language is Chinese',
+      scope,
+      pageUrl: location.href,
+      pageTitle: document.title,
+    });
+    return { ok: true, data: { segments: [], skipped: 'chinese-source' } };
+  }
+
   debugSegments(debugLogging, `scan ${scope} segments`, segments);
   debugGroup(debugLogging, 'scan summary', {
     scope,
@@ -210,6 +221,16 @@ async function translateContext(): Promise<ExtensionResponse> {
   }
 
   const debugLogging = settings.debugLogging || isLocalDebugEnabled();
+  if (shouldSkipChineseSourceTranslation(settings, [target.segment])) {
+    debugGroup(debugLogging, 'skip context translation', {
+      reason: 'source appears to be Chinese and target language is Chinese',
+      translationKind: target.translationKind,
+      pageUrl: location.href,
+      pageTitle: document.title,
+    });
+    return { ok: true, data: { segments: [], skipped: 'chinese-source' } };
+  }
+
   interactionTargets.set(target.segment.id, target);
   debugSegments(debugLogging, `context ${target.translationKind} segment`, [target.segment]);
   debugGroup(debugLogging, 'context translation target', {
@@ -354,6 +375,7 @@ async function autoTranslateVisibleSegments() {
 
   const untranslatedSegments = getVisibleSegments().filter((segment) => !hasRenderedTranslation(segment.id));
   if (untranslatedSegments.length === 0) return;
+  if (shouldSkipChineseSourceTranslation(settings, untranslatedSegments)) return;
 
   const signature = untranslatedSegments.map((segment) => segment.id).join('|');
   if (signature === lastAutoTranslateSignature) return;

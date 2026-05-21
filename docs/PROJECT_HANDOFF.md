@@ -12,7 +12,7 @@ Auto-T is a Chrome MV3 bilingual webpage translation extension powered by DeepSe
 - Working directory: `/Users/lvtong/Documents/Practice/Auto-T`
 - Current branch: `agent/m1/debug-segment-console`
 - Latest pushed commit before M3 shortcut/context work: `6832c78 fix: harden translation response parser`
-- Current package version in working tree: `0.1.27`
+- Current package version in working tree: `0.1.28`
 
 Important: run this first in any new window:
 
@@ -77,8 +77,11 @@ Completed:
 - Options shows translation cache count and can clear all local cache entries.
 - Cache storage helpers support stats, clearing all cache, and clearing entries by recorded hostname for newly saved cache entries.
 - Popup identifies the active http/https hostname and can clear current-site cache entries.
-- DeepSeek model selector supports `deepseek-chat` and `deepseek-reasoner`.
+- DeepSeek model selector supports `Flash` and `Pro`.
+- Flash sends `deepseek-v4-flash`; Pro sends `deepseek-v4-pro`.
+- Legacy `deepseek-chat` settings migrate to Flash, and legacy `deepseek-reasoner` settings migrate to Pro.
 - DeepSeek model is included in the translation cache key.
+- Chinese source pages or context targets are skipped before DeepSeek requests when the target language is Chinese.
 - Inline `code`, `kbd`, and `samp` literals inside paragraph text are protected with placeholders and restored unchanged in translations.
 - Response parser recovers JSON from fenced/prose-wrapped responses, repairs common punctuation issues, skips malformed segment entries, and reads alternate/nested translation fields.
 

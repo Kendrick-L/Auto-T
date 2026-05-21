@@ -83,7 +83,7 @@ function makeRequest(
     settings: {
       extensionEnabled: true,
       deepseekApiKey: '',
-      deepseekModel: 'deepseek-chat',
+      deepseekModel: 'flash',
       targetLang: 'zh-CN',
       sourceLang: 'auto',
       mode: 'normal',

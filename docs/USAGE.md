@@ -109,7 +109,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.27`.
+Current version: `0.1.28`.
 
 ## Configure DeepSeek
 
@@ -144,8 +144,8 @@ Priority:
 
 Default model:
 
-- `deepseek-chat` is the default.
-- `deepseek-reasoner` can be selected for reasoning-heavy translation checks, but may be slower and use more tokens.
+- `Flash` is the default and sends `deepseek-v4-flash` to DeepSeek.
+- `Pro` can be selected for harder passages and sends `deepseek-v4-pro` to DeepSeek; it may be slower and use more tokens.
 
 Important:
 
@@ -164,6 +164,7 @@ Current behavior:
 - A build-time `.env` key is embedded in the generated extension bundle.
 - Text selected for translation is sent to the DeepSeek API.
 - Text under the mouse is sent only after the user invokes the context shortcut.
+- When the target language is Chinese, pages or selected context that already appear to be Chinese are skipped before sending a DeepSeek request.
 - Page title, page URL, and a bounded set of nearby scanned segments are included in translation requests to improve context.
 - Translation cache is stored locally through Chrome storage.
 - Cache can be disabled in Options.
@@ -351,10 +352,10 @@ The selected DeepSeek model is sent with each translation request and is part of
 
 Available models:
 
-- `deepseek-chat`: default chat model for normal translation.
-- `deepseek-reasoner`: optional reasoning model for harder passages; Auto-T omits chat temperature for this model.
+- `Flash`: default model for normal translation. Auto-T sends `deepseek-v4-flash` to DeepSeek.
+- `Pro`: optional model for harder passages. Auto-T sends `deepseek-v4-pro` to DeepSeek and keeps cache entries separate from Flash.
 
-DeepSeek docs currently list `deepseek-chat` and `deepseek-reasoner` as compatibility names with a planned deprecation date. Revisit model names before publishing a long-lived build.
+Legacy local settings are migrated on read: old `deepseek-chat` values become `Flash`, and old `deepseek-reasoner` values become `Pro`.
 
 ## Domain Profiles
 

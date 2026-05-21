@@ -27,7 +27,8 @@ Improve translation quality and professional control after the Phase 1 webpage t
 | Domain profile prompt | Done | `agent/m1/debug-segment-console` | Adds a specialized domain profile setting for general, technical docs, legal, medical, finance, and product documentation. |
 | Nearby context prompt | Done | `agent/m1/debug-segment-console` | Adds nearby scanned segments to each DeepSeek batch prompt without sending the full page. |
 | Cache management UI and helpers | Done | `agent/m1/debug-segment-console` | Options can show cache count and clear all cached translations. Popup identifies the active http/https hostname and can clear cached entries for the current site. |
-| DeepSeek model selector | Done | `agent/m1/debug-segment-console` | Options can choose `deepseek-chat` or `deepseek-reasoner`; the selected model is used in DeepSeek requests and separated in cache keys. |
+| DeepSeek model selector | Done | `agent/m1/debug-segment-console` | Options can choose `Flash` or `Pro`; Auto-T sends `deepseek-v4-flash` or `deepseek-v4-pro` to DeepSeek and separates cache keys by model. |
+| Chinese source skip | Done | `agent/m1/debug-segment-console` | When the target language is Chinese, Chinese-language pages or context shortcut targets are skipped before DeepSeek requests. |
 | Protected inline literals | Done | `agent/m1/debug-segment-console` | Inline `code`, `kbd`, and `samp` literals inside paragraph text are sent as protected placeholders and restored into translations unchanged. |
 | Response parser fallback | Done | `agent/m1/debug-segment-console` | Parser recovers JSON from fences/prose, repairs common punctuation issues, skips malformed segment entries, and recovers alternate/nested translation fields. |
 
@@ -43,8 +44,9 @@ Improve translation quality and professional control after the Phase 1 webpage t
 - Translation cache entries record the source hostname for new saves.
 - Storage helpers support cache stats, clearing all cache, and clearing cache entries for a recorded hostname.
 - Popup includes current-site cache status and `Clear site` for active http/https tabs.
-- Options includes a DeepSeek model selector for `deepseek-chat` and `deepseek-reasoner`.
+- Options includes a DeepSeek model selector for `Flash` and `Pro`.
 - DeepSeek requests use the selected model, and cache keys include the selected model.
+- Chinese source pages are detected by document language and source text heuristics and skipped when the target language is Chinese.
 - Inline code/path literals inside paragraphs are preserved in translated text while block code remains skipped.
 - DeepSeek response parsing handles common JSON wrappers, small punctuation mistakes, malformed entries, and alternate translation fields.
 - M3 interaction work has started on this branch: `Option+V` translates visible text, and `Option+T` translates selected text first or the hovered sentence/paragraph without automatic page-load/hover requests. Hover sentence detection now uses the full owner block instead of the inline word node, and context translation shows a loading state before the result arrives.

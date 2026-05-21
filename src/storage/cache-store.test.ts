@@ -79,17 +79,17 @@ describe('translation cache store', () => {
         {
           id: 'segment-1',
           source: 'Model-specific cached text.',
-          translation: '聊天模型译文。',
+          translation: 'Flash 模型译文。',
         },
       ],
-      { ...DEFAULT_SETTINGS, deepseekModel: 'deepseek-chat' },
+      { ...DEFAULT_SETTINGS, deepseekModel: 'flash' },
       'glossary-v1',
     );
 
     await expect(
       getCachedTranslation(
-        { id: 'reasoner-id', text: 'Model-specific cached text.', tagName: 'p', hash: 'hash' },
-        { ...DEFAULT_SETTINGS, deepseekModel: 'deepseek-reasoner' },
+        { id: 'pro-id', text: 'Model-specific cached text.', tagName: 'p', hash: 'hash' },
+        { ...DEFAULT_SETTINGS, deepseekModel: 'pro' },
         'glossary-v1',
       ),
     ).resolves.toBeNull();

@@ -40,7 +40,8 @@ Phase 2 已完成：
 - Options 可查看缓存数量并清理全部缓存
 - Popup 可识别当前 http/https hostname 并清理当前站点缓存
 - Popup 可 Pause/Resume 翻译，Chrome toolbar 有 active/paused icon 和 OFF badge
-- DeepSeek model selector 支持 `deepseek-chat` / `deepseek-reasoner`，并进入 cache key
+- DeepSeek model selector 支持 `Flash` / `Pro`，分别请求 `deepseek-v4-flash` / `deepseek-v4-pro`，并进入 cache key
+- 目标语言为中文时，中文源页面或中文交互目标会跳过 DeepSeek 请求
 - Response parser 已支持 fenced/prose-wrapped JSON、尾逗号、部分坏 segment、alternate/nested translation 字段恢复
 
 下一步推荐任务：

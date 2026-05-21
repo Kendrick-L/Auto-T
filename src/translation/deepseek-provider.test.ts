@@ -3,21 +3,21 @@ import { buildDeepSeekRequestBody } from '@/src/translation/deepseek-provider';
 import type { TranslateRequest } from '@/src/translation/types';
 
 describe('buildDeepSeekRequestBody', () => {
-  it('uses the selected DeepSeek chat model with deterministic temperature', () => {
-    const body = buildDeepSeekRequestBody(makeRequest('deepseek-chat'));
+  it('maps Flash to the current DeepSeek flash model with deterministic temperature', () => {
+    const body = buildDeepSeekRequestBody(makeRequest('flash'));
 
-    expect(body.model).toBe('deepseek-chat');
+    expect(body.model).toBe('deepseek-v4-flash');
     expect(body).toMatchObject({
       temperature: 0.2,
       response_format: { type: 'json_object' },
     });
   });
 
-  it('uses the selected DeepSeek reasoner model without chat temperature', () => {
-    const body = buildDeepSeekRequestBody(makeRequest('deepseek-reasoner'));
+  it('maps Pro to the current DeepSeek pro model', () => {
+    const body = buildDeepSeekRequestBody(makeRequest('pro'));
 
-    expect(body.model).toBe('deepseek-reasoner');
-    expect(body).not.toHaveProperty('temperature');
+    expect(body.model).toBe('deepseek-v4-pro');
+    expect(body.temperature).toBe(0.2);
     expect(body.response_format).toEqual({ type: 'json_object' });
   });
 });

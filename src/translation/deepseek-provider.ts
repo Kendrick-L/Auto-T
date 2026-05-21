@@ -15,6 +15,10 @@ type DeepSeekChatResponse = {
 const DEEPSEEK_URL = 'https://api.deepseek.com/chat/completions';
 const REQUEST_TIMEOUT_MS = 45_000;
 const MAX_ATTEMPTS = 2;
+const DEEPSEEK_MODEL_IDS = {
+  flash: 'deepseek-v4-flash',
+  pro: 'deepseek-v4-pro',
+} as const;
 
 export async function translateWithDeepSeek(request: TranslateRequest): Promise<TranslatedSegment[]> {
   const apiKey = getEffectiveDeepSeekApiKey(request.settings);
@@ -82,8 +86,8 @@ async function requestDeepSeek(request: TranslateRequest, apiKey: string) {
 
 export function buildDeepSeekRequestBody(request: TranslateRequest) {
   return {
-    model: request.settings.deepseekModel,
-    ...(request.settings.deepseekModel === 'deepseek-chat' ? { temperature: 0.2 } : {}),
+    model: DEEPSEEK_MODEL_IDS[request.settings.deepseekModel],
+    temperature: 0.2,
     response_format: { type: 'json_object' },
     messages: [
       {

@@ -116,10 +116,10 @@ export function App() {
               setSettings({ ...settings, deepseekModel: event.target.value as UserSettings['deepseekModel'] })
             }
           >
-            <option value="deepseek-chat">deepseek-chat</option>
-            <option value="deepseek-reasoner">deepseek-reasoner</option>
+            <option value="flash">Flash</option>
+            <option value="pro">Pro</option>
           </select>
-          <small>Changing models keeps cache entries separate. Reasoner may be slower and use more tokens.</small>
+          <small>Changing models keeps cache entries separate. Flash is the default; Pro may be slower and use more tokens.</small>
         </label>
 
         <label>

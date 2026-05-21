@@ -3,7 +3,7 @@ import { getBundledDeepSeekApiKey } from '@/src/config/env';
 export type UserSettings = {
   extensionEnabled: boolean;
   deepseekApiKey: string;
-  deepseekModel: 'deepseek-chat' | 'deepseek-reasoner';
+  deepseekModel: 'flash' | 'pro';
   targetLang: 'zh-CN' | 'en' | 'ja' | 'ko';
   sourceLang: 'auto' | 'en' | 'zh-CN' | 'ja' | 'ko';
   mode: 'normal' | 'technical' | 'academic';
@@ -19,7 +19,7 @@ const SETTINGS_KEY = 'autoTSettings';
 export const DEFAULT_SETTINGS: UserSettings = {
   extensionEnabled: true,
   deepseekApiKey: '',
-  deepseekModel: 'deepseek-chat',
+  deepseekModel: 'flash',
   targetLang: 'zh-CN',
   sourceLang: 'auto',
   mode: 'normal',
@@ -32,9 +32,11 @@ export const DEFAULT_SETTINGS: UserSettings = {
 
 export async function getSettings(): Promise<UserSettings> {
   const result = await chrome.storage.local.get(SETTINGS_KEY);
+  const stored = (result[SETTINGS_KEY] as Partial<UserSettings> | undefined) ?? {};
   return {
     ...DEFAULT_SETTINGS,
-    ...(result[SETTINGS_KEY] as Partial<UserSettings> | undefined),
+    ...stored,
+    deepseekModel: normalizeDeepSeekModel(stored.deepseekModel),
   };
 }
 
@@ -52,4 +54,9 @@ export function getDeepSeekApiKeySource(settings: UserSettings): DeepSeekApiKeyS
   if (settings.deepseekApiKey.trim()) return 'options';
   if (getBundledDeepSeekApiKey()) return 'env';
   return 'missing';
+}
+
+function normalizeDeepSeekModel(model: unknown): UserSettings['deepseekModel'] {
+  if (model === 'pro' || model === 'deepseek-reasoner') return 'pro';
+  return 'flash';
 }
