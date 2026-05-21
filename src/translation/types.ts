@@ -4,6 +4,7 @@ import type { UserSettings } from '@/src/storage/settings-store';
 
 export type TranslationMode = 'normal' | 'technical' | 'academic';
 export type DomainProfile = 'general' | 'technical-docs' | 'legal' | 'medical' | 'finance' | 'product';
+export type TranslationKind = 'page' | 'context-selection' | 'context-hover';
 
 export type TranslationContextSegment = {
   id: string;
@@ -19,6 +20,7 @@ export type TranslateRequest = {
   settings: UserSettings;
   glossary: GlossaryItem[];
   debugLogging?: boolean;
+  translationKind?: TranslationKind;
 };
 
 export type TranslatedSegment = {

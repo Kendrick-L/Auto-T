@@ -1,5 +1,5 @@
 import type { PageSegment } from '@/src/core/dom-scanner';
-import type { TranslatedSegment } from '@/src/translation/types';
+import type { TranslatedSegment, TranslationContextSegment, TranslationKind } from '@/src/translation/types';
 
 export type ExtensionMessage =
   | {
@@ -13,13 +13,21 @@ export type ExtensionMessage =
       type: 'RESTORE_PAGE';
     }
   | {
+      type: 'COMMAND_TRANSLATE_VISIBLE';
+    }
+  | {
+      type: 'COMMAND_TRANSLATE_CONTEXT';
+    }
+  | {
       type: 'TRANSLATE_SEGMENTS';
       payload: {
         segments: PageSegment[];
+        contextSegments?: TranslationContextSegment[];
         pageTitle: string;
         pageUrl: string;
         force?: boolean;
         debugLogging?: boolean;
+        translationKind?: TranslationKind;
       };
     }
   | {

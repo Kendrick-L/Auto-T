@@ -1,4 +1,5 @@
 import { syncActionStateFromSettings } from '@/src/action/action-state';
+import { commandToContentMessage } from '@/src/commands/command-router';
 import { translateSegments } from '@/src/translation/translate-service';
 import type { ExtensionMessage, ExtensionResponse } from '@/src/messaging/messages';
 
@@ -15,6 +16,17 @@ export default defineBackground(() => {
     if (areaName === 'local') {
       void syncActionStateFromSettings();
     }
+  });
+  chrome.commands.onCommand.addListener((command) => {
+    const message = commandToContentMessage(command);
+    if (!message) return;
+
+    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+      if (!tab?.id) return;
+      chrome.tabs.sendMessage(tab.id, message, () => {
+        void chrome.runtime.lastError;
+      });
+    });
   });
 
   chrome.runtime.onMessage.addListener(

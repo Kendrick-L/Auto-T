@@ -29,7 +29,13 @@ export async function translateSegments(
 
   const results: TranslatedSegment[] = [];
   const uncached = [];
-  const contextVersions = buildContextVersions(payload.segments, payload.pageTitle, payload.pageUrl);
+  const contextVersions = buildContextVersions(
+    payload.segments,
+    payload.pageTitle,
+    payload.pageUrl,
+    payload.translationKind,
+    payload.contextSegments,
+  );
   let cached = 0;
   let translatedCount = 0;
 
@@ -70,7 +76,7 @@ export async function translateSegments(
     const currentBatch = Math.floor(index / BATCH_SIZE) + 1;
     const totalBatches = Math.ceil(uncached.length / BATCH_SIZE);
     debugSegments(debugLogging, `DeepSeek batch ${currentBatch}/${totalBatches} source`, batch);
-    const contextSegments = buildBatchContext(payload.segments, batch);
+    const contextSegments = buildBatchContext(payload.segments, batch, payload.contextSegments);
     debugSegments(debugLogging, `DeepSeek batch ${currentBatch}/${totalBatches} context`, contextSegments);
     const translated = await translateBatchWithFallback({
       batch,
@@ -82,6 +88,7 @@ export async function translateSegments(
       pageUrl: payload.pageUrl,
       settings,
       totalBatches,
+      translationKind: payload.translationKind,
     });
 
     debugSegments(debugLogging, `DeepSeek batch ${currentBatch}/${totalBatches} parsed translations`, translated);
@@ -116,6 +123,7 @@ type TranslateBatchOptions = {
   pageUrl: string;
   settings: Awaited<ReturnType<typeof getSettings>>;
   totalBatches: number;
+  translationKind: TranslatePayload['translationKind'];
 };
 
 async function translateBatchWithFallback(options: TranslateBatchOptions): Promise<TranslatedSegment[]> {
@@ -128,6 +136,7 @@ async function translateBatchWithFallback(options: TranslateBatchOptions): Promi
       settings: options.settings,
       glossary: options.glossary,
       debugLogging: options.debugLogging,
+      ...(options.translationKind ? { translationKind: options.translationKind } : {}),
     });
   } catch (error) {
     if (isRequestLevelError(error)) {
@@ -155,6 +164,7 @@ async function translateBatchWithFallback(options: TranslateBatchOptions): Promi
           settings: options.settings,
           glossary: options.glossary,
           debugLogging: options.debugLogging,
+          ...(options.translationKind ? { translationKind: options.translationKind } : {}),
         });
         recovered.push(...translated);
       } catch (singleError) {
@@ -187,35 +197,48 @@ function isRequestLevelError(error: unknown) {
   );
 }
 
-function buildBatchContext(allSegments: TranslatePayload['segments'], batch: TranslatePayload['segments']) {
+function buildBatchContext(
+  allSegments: TranslatePayload['segments'],
+  batch: TranslatePayload['segments'],
+  extraContextSegments: TranslationContextSegment[] = [],
+) {
   const batchIds = new Set(batch.map((segment) => segment.id));
   const batchIndexes = batch
     .map((segment) => allSegments.findIndex((candidate) => candidate.id === segment.id))
     .filter((index) => index >= 0);
-  if (batchIndexes.length === 0) return [];
+  if (batchIndexes.length === 0) return mergeContextSegments(extraContextSegments, []);
 
   const start = Math.max(0, Math.min(...batchIndexes) - CONTEXT_RADIUS);
   const end = Math.min(allSegments.length, Math.max(...batchIndexes) + CONTEXT_RADIUS + 1);
 
-  return allSegments
+  const nearbyContext = allSegments
     .slice(start, end)
     .filter((segment) => !batchIds.has(segment.id))
     .slice(0, CONTEXT_SEGMENT_LIMIT)
     .map(toContextSegment);
+
+  return mergeContextSegments(extraContextSegments, nearbyContext);
 }
 
 function buildSingleSegmentContext(contextSegments: TranslationContextSegment[], segmentId: string) {
   return contextSegments.filter((segment) => segment.id !== segmentId).slice(0, CONTEXT_SEGMENT_LIMIT);
 }
 
-function buildContextVersions(segments: TranslatePayload['segments'], pageTitle: string, pageUrl: string) {
+function buildContextVersions(
+  segments: TranslatePayload['segments'],
+  pageTitle: string,
+  pageUrl: string,
+  translationKind: TranslatePayload['translationKind'] = 'page',
+  extraContextSegments: TranslationContextSegment[] = [],
+) {
   const versions = new Map<string, string>();
 
   for (const segment of segments) {
-    const context = buildBatchContext(segments, [segment]);
+    const context = buildBatchContext(segments, [segment], extraContextSegments);
     versions.set(
       segment.id,
       [
+        translationKind,
         pageTitle,
         safeHostname(pageUrl),
         ...context.map((contextSegment) => `${contextSegment.id}:${contextSegment.text}`),
@@ -224,6 +247,27 @@ function buildContextVersions(segments: TranslatePayload['segments'], pageTitle:
   }
 
   return versions;
+}
+
+function mergeContextSegments(
+  extraContextSegments: TranslationContextSegment[],
+  nearbyContext: TranslationContextSegment[],
+) {
+  const merged: TranslationContextSegment[] = [];
+  const seen = new Set<string>();
+
+  for (const segment of [...extraContextSegments, ...nearbyContext]) {
+    const key = `${segment.id}:${segment.text}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push({
+      id: segment.id,
+      text: truncateContextText(segment.text),
+    });
+    if (merged.length >= CONTEXT_SEGMENT_LIMIT) break;
+  }
+
+  return merged;
 }
 
 function toContextSegment(segment: TranslatePayload['segments'][number]): TranslationContextSegment {

@@ -47,6 +47,23 @@ describe('buildTranslationPrompt', () => {
     expect(prompt).toContain('segment-1: [[AUTO_T_LITERAL_1]] = ~/.hermes/skills/');
     expect(prompt).toContain('"text":"Hermes snapshots [[AUTO_T_LITERAL_1]] before each pass."');
   });
+
+  it('adds a contextual rule for selection translations', () => {
+    const prompt = buildTranslationPrompt({
+      ...makeRequest(),
+      translationKind: 'context-selection',
+      contextSegments: [
+        {
+          id: 'context-1',
+          text: 'The selected word appears in a software deployment paragraph.',
+        },
+      ],
+    });
+
+    expect(prompt).toContain('translate the selected word, phrase, sentence, or paragraph');
+    expect(prompt).toContain('best contextual translation');
+    expect(prompt).toContain('software deployment paragraph');
+  });
 });
 
 function makeRequest(

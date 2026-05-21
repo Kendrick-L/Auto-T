@@ -20,6 +20,10 @@ Current MVP features:
 - Cache translations to reduce repeated API calls.
 - View local cache size and clear all cached translations from Options.
 - Clear cached translations for the current site from the popup.
+- Use keyboard shortcuts for low-friction translation:
+  - `Option+V` on macOS (`Alt+V` in Chrome commands) translates the visible area.
+  - `Option+T` on macOS (`Alt+T` in Chrome commands) translates selected text first, or the sentence/paragraph under the mouse when nothing is selected.
+- View shortcut binding status from Options and open Chrome shortcut settings.
 
 Not supported yet:
 
@@ -27,7 +31,6 @@ Not supported yet:
 - Video subtitle translation.
 - OCR.
 - Selection popup.
-- Hover translation.
 - Input box translation.
 - Dynamic page auto-translation.
 
@@ -106,7 +109,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.25`.
+Current version: `0.1.26`.
 
 ## Configure DeepSeek
 
@@ -160,6 +163,7 @@ Current behavior:
 - The DeepSeek API Key can come from Chrome local extension storage or from `.env` at build time.
 - A build-time `.env` key is embedded in the generated extension bundle.
 - Text selected for translation is sent to the DeepSeek API.
+- Text under the mouse is sent only after the user invokes the context shortcut.
 - Page title, page URL, and a bounded set of nearby scanned segments are included in translation requests to improve context.
 - Translation cache is stored locally through Chrome storage.
 - Cache can be disabled in Options.
@@ -210,6 +214,28 @@ Recommended workflow:
 5. Use `Page` only when you want broader coverage.
 
 For hands-free reading, enable `Auto visible on scroll`. It is off by default because every newly translated viewport can consume DeepSeek API quota. When enabled, Auto-T also watches for newly inserted visible page content and routes it through the same auto visible flow.
+
+## Use Keyboard Shortcuts
+
+Auto-T does not translate automatically when a page loads, when the mouse moves, or when text is selected. Translation starts from an explicit popup action, shortcut, or the optional `Auto visible on scroll` setting.
+
+Default shortcuts:
+
+- `Option+V` on macOS: translate visible text. Chrome manifest syntax stores this as `Alt+V`.
+- `Option+T` on macOS: translate context. If text is selected, Auto-T translates the selection. If nothing is selected, Auto-T translates the sentence under the last mouse position, falling back to the paragraph when sentence detection is not useful.
+
+The context shortcut supports a selected word, phrase, sentence, or paragraph. For selected short text, Auto-T sends the surrounding paragraph as context so DeepSeek can choose the current in-page meaning.
+
+Context translations are inserted directly after the target block. Repeating the same context shortcut on the same target updates the existing interaction translation instead of appending duplicates. `Restore` removes both normal page translations and context shortcut translations.
+
+Shortcut customization:
+
+1. Open Auto-T Options.
+2. Check `Keyboard Shortcuts` for the current binding status.
+3. Click `Open Chrome shortcut settings`.
+4. Change Auto-T shortcuts in `chrome://extensions/shortcuts`.
+
+Chrome does not expose other extensions' shortcut bindings to Auto-T. If Chrome reports an Auto-T command with an empty shortcut, Options shows `Not bound / possible conflict`.
 
 ## Manual Chrome Smoke Test
 

@@ -31,5 +31,21 @@ export default defineConfig({
       page: 'options.html',
       open_in_tab: true,
     },
+    commands: {
+      'auto-t-translate-visible': {
+        suggested_key: {
+          default: 'Alt+V',
+          mac: 'Alt+V',
+        },
+        description: 'Auto-T: translate visible text',
+      },
+      'auto-t-translate-context': {
+        suggested_key: {
+          default: 'Alt+T',
+          mac: 'Alt+T',
+        },
+        description: 'Auto-T: translate selected text or hovered paragraph',
+      },
+    },
   },
 });

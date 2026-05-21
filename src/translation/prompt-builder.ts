@@ -21,6 +21,14 @@ const PROFILE_INSTRUCTIONS = {
     'Treat the page as product or SaaS documentation. Keep feature names, plan names, UI labels, and workflow terms consistent.',
 };
 
+const KIND_INSTRUCTIONS = {
+  page: '',
+  'context-selection':
+    'Interaction rule: translate the selected word, phrase, sentence, or paragraph based on the surrounding page context. For short words and phrases, return only the best contextual translation in the target language without explanation.',
+  'context-hover':
+    'Interaction rule: translate only the hovered sentence or paragraph using the normal webpage translation style. Return translation text only for the input segment.',
+};
+
 export function buildTranslationPrompt(request: TranslateRequest) {
   const glossaryText = request.glossary.length
     ? request.glossary
@@ -45,6 +53,7 @@ export function buildTranslationPrompt(request: TranslateRequest) {
     `Page URL: ${request.pageUrl}.`,
     MODE_INSTRUCTIONS[request.settings.mode],
     PROFILE_INSTRUCTIONS[request.settings.domainProfile],
+    KIND_INSTRUCTIONS[request.translationKind ?? 'page'],
     'Rules:',
     '1. Translate every segment faithfully without adding explanations.',
     '2. Preserve URLs, code identifiers, placeholders, product names, and numbers.',

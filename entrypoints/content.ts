@@ -1,4 +1,10 @@
 import { scanPageSegments } from '@/src/core/dom-scanner';
+import {
+  type ContextTranslationTarget,
+  type PointerPosition,
+  resolveContextTranslationTarget,
+} from '@/src/core/context-translation';
+import { renderInteractionTranslation } from '@/src/core/interaction-renderer';
 import { clearTranslationLoading, renderTranslationLoading, renderTranslations } from '@/src/core/renderer';
 import { restorePage } from '@/src/core/restore';
 import { getEffectiveDeepSeekApiKey, getSettings } from '@/src/storage/settings-store';
@@ -7,7 +13,7 @@ import { EXTENSION_TRANSLATION_CLASS } from '@/src/constants';
 import type { ExtensionMessage, ExtensionResponse } from '@/src/messaging/messages';
 import type { PageSegment } from '@/src/core/dom-scanner';
 import type { UserSettings } from '@/src/storage/settings-store';
-import type { TranslatedSegment } from '@/src/translation/types';
+import type { TranslatedSegment, TranslationContextSegment, TranslationKind } from '@/src/translation/types';
 
 const VISIBLE_LIMIT = 24;
 const PAGE_LIMIT = 80;
@@ -23,6 +29,8 @@ let autoTranslateTimer: number | undefined;
 let mutationObserver: MutationObserver | undefined;
 let autoTranslateInFlight = false;
 let lastAutoTranslateSignature = '';
+let lastPointerPosition: PointerPosition | null = null;
+const interactionTargets = new Map<string, ContextTranslationTarget>();
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -31,6 +39,7 @@ export default defineContentScript({
     startMutationObserver();
     window.addEventListener('scroll', handleViewportChange, { passive: true });
     window.addEventListener('resize', handleViewportChange, { passive: true });
+    window.addEventListener('mousemove', handlePointerMove, { passive: true });
 
     chrome.runtime.onMessage.addListener(
       (message: ExtensionMessage, _sender, sendResponse: (response: ExtensionResponse) => void) => {
@@ -46,14 +55,39 @@ export default defineContentScript({
           return true;
         }
 
+        if (message.type === 'COMMAND_TRANSLATE_VISIBLE') {
+          translatePage('visible', false)
+            .then(sendResponse)
+            .catch((error: unknown) => {
+              sendResponse({
+                ok: false,
+                error: formatContentError(error),
+              });
+            });
+          return true;
+        }
+
+        if (message.type === 'COMMAND_TRANSLATE_CONTEXT') {
+          translateContext()
+            .then(sendResponse)
+            .catch((error: unknown) => {
+              sendResponse({
+                ok: false,
+                error: formatContentError(error),
+              });
+            });
+          return true;
+        }
+
         if (message.type === 'RESTORE_PAGE') {
           restorePage();
+          interactionTargets.clear();
           sendResponse({ ok: true, data: { restored: true } });
           return false;
         }
 
         if (message.type === 'TRANSLATION_BATCH_RESULT') {
-          void renderWithCurrentSettings(message.payload.segments);
+          void renderTranslatedSegmentsWithCurrentSettings(message.payload.segments);
           sendResponse({ ok: true, data: { rendered: message.payload.segments.length } });
           return false;
         }
@@ -63,6 +97,13 @@ export default defineContentScript({
     );
   },
 });
+
+function handlePointerMove(event: MouseEvent) {
+  lastPointerPosition = {
+    x: event.clientX,
+    y: event.clientY,
+  };
+}
 
 function handleViewportChange() {
   schedulePrescan(120);
@@ -146,17 +187,61 @@ async function translatePage(scope: 'visible' | 'page', force: boolean): Promise
   return translateAndRender(segments, force, debugLogging);
 }
 
+async function translateContext(): Promise<ExtensionResponse> {
+  const settings = await getContentSettings();
+  if (!settings) return extensionInvalidatedResponse();
+  if (!settings.extensionEnabled) {
+    return {
+      ok: false,
+      error: 'Auto-T is paused. Resume it from the popup to translate.',
+    };
+  }
+
+  const target = resolveContextTranslationTarget(lastPointerPosition);
+  if (!target) {
+    return {
+      ok: false,
+      error: 'No selected text or hovered paragraph was found for context translation.',
+    };
+  }
+
+  const debugLogging = settings.debugLogging || isLocalDebugEnabled();
+  interactionTargets.set(target.segment.id, target);
+  debugSegments(debugLogging, `context ${target.translationKind} segment`, [target.segment]);
+  debugGroup(debugLogging, 'context translation target', {
+    translationKind: target.translationKind,
+    contextSegments: target.contextSegments,
+    pageUrl: location.href,
+    pageTitle: document.title,
+  });
+
+  return translateAndRender([target.segment], false, debugLogging, {
+    contextSegments: target.contextSegments,
+    renderLoading: false,
+    translationKind: target.translationKind,
+  });
+}
+
+type TranslateAndRenderOptions = {
+  contextSegments?: TranslationContextSegment[];
+  renderLoading?: boolean;
+  translationKind?: TranslationKind;
+};
+
 async function translateAndRender(
   segments: PageSegment[],
   force: boolean,
   debugLogging?: boolean,
+  options: TranslateAndRenderOptions = {},
 ): Promise<ExtensionResponse> {
   if (segments.length === 0) {
     return { ok: true, data: { segments: [] } };
   }
 
   debugSegments(debugLogging, 'sending segments to background', segments);
-  await renderLoadingWithCurrentSettings(segments, debugLogging);
+  if (options.renderLoading !== false) {
+    await renderLoadingWithCurrentSettings(segments, debugLogging);
+  }
 
   return new Promise((resolve) => {
     if (!isExtensionContextActive()) {
@@ -169,7 +254,9 @@ async function translateAndRender(
       pageTitle: document.title,
       pageUrl: location.href,
       force,
+      ...(options.contextSegments?.length ? { contextSegments: options.contextSegments } : {}),
       ...(debugLogging === undefined ? {} : { debugLogging }),
+      ...(options.translationKind ? { translationKind: options.translationKind } : {}),
     };
 
     try {
@@ -194,7 +281,7 @@ async function translateAndRender(
 
           if (response.ok && response.data.segments) {
             debugSegments(debugLogging, 'received translated segments from background', response.data.segments);
-            await renderWithCurrentSettings(response.data.segments, debugLogging);
+            await renderTranslatedSegmentsWithCurrentSettings(response.data.segments, debugLogging);
           } else if (!response.ok) {
             clearTranslationLoading(segments);
             debugError(debugLogging, 'background translation failed', response.error);
@@ -211,10 +298,27 @@ async function translateAndRender(
   });
 }
 
-async function renderWithCurrentSettings(segments: TranslatedSegment[], debugLogging?: boolean) {
+async function renderTranslatedSegmentsWithCurrentSettings(segments: TranslatedSegment[], debugLogging?: boolean) {
   const settings = await getContentSettings();
-  const renderResults = renderTranslations(segments, settings?.displayMode ?? 'bilingual');
-  debugGroup(debugLogging ?? settings?.debugLogging, 'render result', renderResults);
+  const normalSegments: TranslatedSegment[] = [];
+  const interactionResults = [];
+
+  for (const segment of segments) {
+    const target = interactionTargets.get(segment.id);
+    if (target) {
+      interactionResults.push(renderInteractionTranslation(target, segment));
+    } else {
+      normalSegments.push(segment);
+    }
+  }
+
+  const renderResults = normalSegments.length
+    ? renderTranslations(normalSegments, settings?.displayMode ?? 'bilingual')
+    : [];
+  debugGroup(debugLogging ?? settings?.debugLogging, 'render result', {
+    normal: renderResults,
+    interaction: interactionResults,
+  });
 }
 
 async function renderLoadingWithCurrentSettings(segments: PageSegment[], debugLogging?: boolean) {

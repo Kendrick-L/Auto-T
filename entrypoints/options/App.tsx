@@ -7,6 +7,7 @@ import {
   getCacheStats,
   type TranslationCacheStats,
 } from '@/src/storage/cache-store';
+import { buildShortcutStatuses, type ShortcutStatus } from '@/src/commands/shortcut-status';
 
 export function App() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -14,12 +15,14 @@ export function App() {
   const [cacheStats, setCacheStats] = useState<TranslationCacheStats | null>(null);
   const [cacheMessage, setCacheMessage] = useState('');
   const [cacheBusy, setCacheBusy] = useState(false);
+  const [shortcutStatuses, setShortcutStatuses] = useState<ShortcutStatus[]>([]);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     void getSettings().then(setSettings);
     void getGlossaryItems().then(setGlossary);
     void refreshCacheStats();
+    void refreshShortcutStatuses();
   }, []);
 
   if (!settings) {
@@ -54,6 +57,25 @@ export function App() {
 
   async function refreshCacheStats() {
     setCacheStats(await getCacheStats());
+  }
+
+  async function refreshShortcutStatuses() {
+    if (!chrome.commands?.getAll) return;
+    const commands = await chrome.commands.getAll();
+    setShortcutStatuses(buildShortcutStatuses(commands));
+  }
+
+  function openShortcutSettings() {
+    const url = 'chrome://extensions/shortcuts';
+    try {
+      chrome.tabs.create({ url }, () => {
+        if (chrome.runtime.lastError) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
+      });
+    } catch {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   }
 
   async function clearAllCache() {
@@ -243,6 +265,33 @@ export function App() {
           Current-site cache clearing is available from the popup on active http and https pages.
         </p>
         {cacheMessage ? <p className="saved">{cacheMessage}</p> : null}
+      </section>
+
+      <section className="panel">
+        <h2>Keyboard Shortcuts</h2>
+        {shortcutStatuses.length ? (
+          shortcutStatuses.map((command) => (
+            <div className="shortcut-row" key={command.id}>
+              <span>
+                {command.label}
+                <small>{command.description}</small>
+              </span>
+              <strong className={command.status === 'bound' ? 'shortcut-bound' : 'shortcut-warning'}>
+                {command.shortcut || (command.status === 'unknown' ? 'Unknown command' : 'Not bound / possible conflict')}
+              </strong>
+            </div>
+          ))
+        ) : (
+          <p className="cache-note">Shortcut status is unavailable outside the Chrome extension Options page.</p>
+        )}
+        <div className="shortcut-actions">
+          <button type="button" onClick={refreshShortcutStatuses}>
+            Refresh
+          </button>
+          <button type="button" onClick={openShortcutSettings}>
+            Open Chrome shortcut settings
+          </button>
+        </div>
       </section>
     </main>
   );

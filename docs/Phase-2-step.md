@@ -47,9 +47,11 @@ Improve translation quality and professional control after the Phase 1 webpage t
 - DeepSeek requests use the selected model, and cache keys include the selected model.
 - Inline code/path literals inside paragraphs are preserved in translated text while block code remains skipped.
 - DeepSeek response parsing handles common JSON wrappers, small punctuation mistakes, malformed entries, and alternate translation fields.
+- M3 interaction work has started on this branch: `Option+V` translates visible text, and `Option+T` translates selected text first or the hovered sentence/paragraph without automatic page-load/hover requests.
 
 ## Current Gaps
 
+- M3 interaction translations currently render inline after the target block; selection popup, pronunciation, copy actions, right-click menu, and floating launcher are still future work.
 - No generated page-level summary yet; current context is nearby scanned segments only.
 - No domain-level or page-level glossary yet.
 - No glossary import/export yet.
@@ -73,7 +75,7 @@ Improve translation quality and professional control after the Phase 1 webpage t
 
 ## Next Recommended Step
 
-Record a small quality benchmark if API quota is allowed, or continue with site-level privacy/cache policy.
+For M3, add manual Chrome evidence for `Option+V` and `Option+T`, then consider right-click menu and copy-translation actions. For Phase 2 quality, record a small benchmark only if API quota is allowed.
 
 ## New Window Handoff
 

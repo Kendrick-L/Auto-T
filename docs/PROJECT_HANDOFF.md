@@ -11,8 +11,8 @@ Auto-T is a Chrome MV3 bilingual webpage translation extension powered by DeepSe
 - Repository: `git@github.com:Kendrick-L/Auto-T.git`
 - Working directory: `/Users/lvtong/Documents/Practice/Auto-T`
 - Current branch: `agent/m1/debug-segment-console`
-- Latest pushed commit before response parser fallback work: `45082a4 fix: preserve inline code literals`
-- Current package version in working tree: `0.1.25`
+- Latest pushed commit before M3 shortcut/context work: `6832c78 fix: harden translation response parser`
+- Current package version in working tree: `0.1.26`
 
 Important: run this first in any new window:
 
@@ -88,9 +88,37 @@ Phase 2 current docs:
 docs/Phase-2-step.md
 ```
 
-## Recommended Next Phase 2 Task
+## M3 Interaction Work Started
 
-Record a small quality benchmark if API quota is allowed, or continue with site-level privacy/cache policy.
+Completed in this branch:
+
+- Manifest Chrome commands:
+  - `auto-t-translate-visible`, default `Alt+V` / macOS `Option+V`.
+  - `auto-t-translate-context`, default `Alt+T` / macOS `Option+T`.
+- Background routes those commands to the active tab content script.
+- Content script translates visible text on command without changing popup behavior.
+- Context command translates selected text first; without selection, it uses the latest mouse position to translate the pointed sentence or paragraph.
+- Context translations are inserted after the target block and repeated triggers update the existing interaction node.
+- Restore removes both normal translations and interaction translations.
+- Options shows keyboard shortcut status from `chrome.commands.getAll()` and opens `chrome://extensions/shortcuts`.
+- Prompt builder includes context-selection and context-hover rules.
+- Unit tests cover command routing, shortcut status parsing, context target priority/fallback, prompt rules, and interaction renderer update/restore behavior.
+
+No automatic translation is triggered by page load, hover, selection, or mousemove. `Auto visible on scroll` remains opt-in.
+
+## Recommended Next Task
+
+For M3, run a manual Chrome smoke check with a real extension load:
+
+- Confirm `Option+V` translates the current viewport.
+- Confirm `Option+T` translates selected words/phrases/sentences with paragraph context.
+- Confirm `Option+T` with no selection translates the hovered sentence or paragraph.
+- Clear one shortcut in `chrome://extensions/shortcuts` and confirm Options shows `Not bound / possible conflict`.
+- Confirm popup `Visible`, `Page`, `Retry visible`, `Restore`, and `Pause / Resume` still work.
+
+After manual evidence, the next implementation step should be right-click menu actions or copy-translation controls. Glossary configuration remains low priority.
+
+Phase 2 quality follow-up: record a small quality benchmark only if API quota is allowed, or continue with site-level privacy/cache policy.
 
 Expected scope:
 

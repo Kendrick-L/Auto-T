@@ -115,7 +115,8 @@ li {
   border-radius: 6px;
 }
 
-.cache-row {
+.cache-row,
+.shortcut-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -125,10 +126,36 @@ li {
   border-radius: 6px;
 }
 
-.cache-row span {
+.cache-row span,
+.shortcut-row span {
   color: #394150;
   font-size: 13px;
   font-weight: 650;
+}
+
+.shortcut-row strong {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.shortcut-bound {
+  color: #155e42;
+  background: #e8f5ef;
+}
+
+.shortcut-warning {
+  color: #8a4b16;
+  background: #fff3df;
+}
+
+.shortcut-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .cache-note {
