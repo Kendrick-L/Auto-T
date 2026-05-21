@@ -84,7 +84,7 @@ export async function translateSegments(
     results.push(...translated);
     translatedCount += translated.length;
     if (settings.enableCache) {
-      await saveCachedTranslations(translated, settings, glossaryVersion, contextVersions);
+      await saveCachedTranslations(translated, settings, glossaryVersion, contextVersions, payload.pageUrl);
     }
     onBatchTranslated?.(translated);
 

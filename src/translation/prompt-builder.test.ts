@@ -45,6 +45,7 @@ function makeRequest(
     pageTitle: 'Quarterly report',
     pageUrl: 'https://example.com/report',
     settings: {
+      extensionEnabled: true,
       deepseekApiKey: '',
       targetLang: 'zh-CN',
       sourceLang: 'auto',

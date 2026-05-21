@@ -2,15 +2,24 @@ import { FormEvent, useEffect, useState } from 'react';
 import { getDeepSeekApiKeySource, getSettings, saveSettings, type UserSettings } from '@/src/storage/settings-store';
 import { hasBundledDeepSeekApiKey } from '@/src/config/env';
 import { addGlossaryItem, getGlossaryItems, removeGlossaryItem, type GlossaryItem } from '@/src/storage/glossary-store';
+import {
+  clearAllCachedTranslations,
+  getCacheStats,
+  type TranslationCacheStats,
+} from '@/src/storage/cache-store';
 
 export function App() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [glossary, setGlossary] = useState<GlossaryItem[]>([]);
+  const [cacheStats, setCacheStats] = useState<TranslationCacheStats | null>(null);
+  const [cacheMessage, setCacheMessage] = useState('');
+  const [cacheBusy, setCacheBusy] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     void getSettings().then(setSettings);
     void getGlossaryItems().then(setGlossary);
+    void refreshCacheStats();
   }, []);
 
   if (!settings) {
@@ -41,6 +50,23 @@ export function App() {
   async function deleteTerm(id: string) {
     await removeGlossaryItem(id);
     setGlossary(await getGlossaryItems());
+  }
+
+  async function refreshCacheStats() {
+    setCacheStats(await getCacheStats());
+  }
+
+  async function clearAllCache() {
+    setCacheBusy(true);
+    setCacheMessage('');
+
+    try {
+      const removed = await clearAllCachedTranslations();
+      await refreshCacheStats();
+      setCacheMessage(removed ? `Cleared ${removed} cached translations.` : 'Cache is already empty.');
+    } finally {
+      setCacheBusy(false);
+    }
   }
 
   return (
@@ -175,6 +201,35 @@ export function App() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="panel">
+        <h2>Cache Management</h2>
+        <div className="cache-row">
+          <span>
+            Cached translations
+            <small>
+              {cacheStats ? `${cacheStats.totalItems} local entries` : 'Loading cache status...'}
+            </small>
+          </span>
+          <button type="button" onClick={refreshCacheStats} disabled={cacheBusy}>
+            Refresh
+          </button>
+        </div>
+        <div className="cache-row">
+          <span>
+            Clear all cache
+            <small>Removes locally stored source and translated text. Future translations may call DeepSeek again.</small>
+          </span>
+          <button type="button" onClick={clearAllCache} disabled={cacheBusy || cacheStats?.totalItems === 0}>
+            Clear all
+          </button>
+        </div>
+        <p className="cache-note">
+          Current-site cache clearing is supported in storage helpers and will be wired once the translated page hostname
+          can be identified safely from the UI.
+        </p>
+        {cacheMessage ? <p className="saved">{cacheMessage}</p> : null}
       </section>
     </main>
   );

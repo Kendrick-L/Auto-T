@@ -16,7 +16,9 @@ Current MVP features:
 - Show per-text loading indicators while visible/page/scroll translations are running.
 - Use built-in page rules for selected sites to improve content scanning.
 - Refresh visible scanning when dynamic page content is inserted.
+- Pause or resume translation from the popup; Chrome shows a paused badge when Auto-T is stopped.
 - Cache translations to reduce repeated API calls.
+- View local cache size and clear all cached translations from Options.
 
 Not supported yet:
 
@@ -103,7 +105,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.19`.
+Current version: `0.1.21`.
 
 ## Configure DeepSeek
 
@@ -155,6 +157,7 @@ Current behavior:
 - Page title, page URL, and a bounded set of nearby scanned segments are included in translation requests to improve context.
 - Translation cache is stored locally through Chrome storage.
 - Cache can be disabled in Options.
+- Cached source and translated text can be cleared from Options with `Clear all`.
 - Glossary items are stored locally.
 
 Do not use real translation on sensitive pages unless you are comfortable sending the selected text, page title, and URL to DeepSeek.
@@ -164,17 +167,25 @@ Recommended sensitive-data practice:
 - Use `Visible` instead of `Page` to reduce the amount of text sent.
 - Disable cache before translating sensitive material.
 - Avoid translating secrets, credentials, contracts, private customer data, or unreleased company documents.
-- Clear extension storage manually from Chrome if sensitive content was translated by mistake.
+- Use Options `Clear all` cache if sensitive content was translated by mistake.
 
 ## Use The Popup
 
 Available actions:
 
+- `Pause translation` / `Resume translation`: globally stops or resumes Auto-T translation.
 - `Visible`: translates visible text near the current viewport. This is the recommended default.
 - `Page`: translates more of the page. This can be slower and may consume more API quota.
 - `Retry visible`: re-runs visible translation without cache.
 - `Restore`: removes Auto-T translations and restores hidden source text.
 - `Auto visible on scroll`: when enabled, translates untranslated visible text after scrolling stops.
+
+When Auto-T is paused:
+
+- The Chrome toolbar icon switches to the paused icon.
+- The toolbar badge shows `OFF`.
+- `Visible`, `Page`, `Retry visible`, and automatic visible translation are blocked.
+- `Restore` remains available so inserted translations can still be removed.
 
 The popup also shows the active DeepSeek key source:
 
@@ -302,6 +313,18 @@ Available profiles:
 
 Changing the domain profile can produce different translations for the same text. Auto-T keeps those cache entries separate.
 
+## Cache Management
+
+Auto-T stores translation cache locally in Chrome extension storage when `Enable translation cache` is on.
+
+In Options:
+
+- `Cached translations` shows the approximate number of local cache entries.
+- `Refresh` reloads the cache count.
+- `Clear all` removes locally cached source and translated text.
+
+After clearing cache, repeated translations may call DeepSeek again and consume API quota. Current-site cache clearing is prepared in storage helpers but not exposed in Options yet because the Options page cannot reliably identify the translated page hostname.
+
 ## Nearby Context
 
 Auto-T adds a small amount of nearby scanned text to each DeepSeek batch so terms, pronouns, and repeated concepts stay more consistent.
@@ -339,13 +362,18 @@ Manual Chrome test:
 
 1. Load `.output/chrome-mv3` in Chrome.
 2. Configure a DeepSeek API Key.
-3. Open a test webpage.
-4. Click `Visible`.
-5. Confirm translations appear below visible text.
-6. Click `Visible` again after scrolling.
-7. Click `Page` on a short article.
-8. Click `Restore`.
-9. Confirm translations are removed and hidden source text returns.
+3. Confirm the toolbar icon is active and has no `OFF` badge.
+4. Open a test webpage.
+5. Click `Visible`.
+6. Confirm translations appear below visible text.
+7. Click `Visible` again after scrolling.
+8. Click `Page` on a short article.
+9. Click `Pause translation` and confirm the toolbar badge shows `OFF`.
+10. Confirm translation actions are disabled while paused.
+11. Click `Resume translation`.
+12. Click `Restore`.
+13. Confirm translations are removed and hidden source text returns.
+14. Open Options, confirm `Cached translations` is visible, and use `Clear all` if cache cleanup needs verification.
 
 Suggested test URLs:
 

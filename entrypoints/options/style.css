@@ -115,6 +115,28 @@ li {
   border-radius: 6px;
 }
 
+.cache-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid #e1e6ee;
+  border-radius: 6px;
+}
+
+.cache-row span {
+  color: #394150;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.cache-note {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
 small {
   display: block;
   color: #64748b;
