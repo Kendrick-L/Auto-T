@@ -26,6 +26,14 @@ export function buildTranslationPrompt(request: TranslateRequest) {
         .map((item) => `- ${item.source} => ${item.target}${item.note ? ` (${item.note})` : ''}`)
         .join('\n')
     : 'None';
+  const contextText = request.contextSegments?.length
+    ? JSON.stringify(
+        request.contextSegments.map((segment) => ({
+          id: segment.id,
+          text: segment.text,
+        })),
+      )
+    : 'None';
 
   return [
     'You are a professional bilingual webpage translation engine.',
@@ -41,9 +49,13 @@ export function buildTranslationPrompt(request: TranslateRequest) {
     '3. Follow the glossary when applicable.',
     '4. Return valid JSON only, with the exact shape: {"segments":[{"id":"...","translation":"..."}]}.',
     '5. Keep the output segment order identical to the input order.',
+    '6. Use nearby page context only to improve consistency; do not translate context-only text unless it appears in input segments.',
     '',
     'Glossary:',
     glossaryText,
+    '',
+    'Nearby page context:',
+    contextText,
     '',
     'Input segments:',
     JSON.stringify(

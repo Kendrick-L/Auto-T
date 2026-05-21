@@ -103,7 +103,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.18`.
+Current version: `0.1.19`.
 
 ## Configure DeepSeek
 
@@ -152,7 +152,7 @@ Current behavior:
 - The DeepSeek API Key can come from Chrome local extension storage or from `.env` at build time.
 - A build-time `.env` key is embedded in the generated extension bundle.
 - Text selected for translation is sent to the DeepSeek API.
-- Page title and page URL are included in translation requests to improve context.
+- Page title, page URL, and a bounded set of nearby scanned segments are included in translation requests to improve context.
 - Translation cache is stored locally through Chrome storage.
 - Cache can be disabled in Options.
 - Glossary items are stored locally.
@@ -301,6 +301,17 @@ Available profiles:
 - `Product docs`: feature names, plan names, UI labels, and workflow terms.
 
 Changing the domain profile can produce different translations for the same text. Auto-T keeps those cache entries separate.
+
+## Nearby Context
+
+Auto-T adds a small amount of nearby scanned text to each DeepSeek batch so terms, pronouns, and repeated concepts stay more consistent.
+
+Current behavior:
+
+- Sends only nearby scanned segments around the current batch.
+- Does not send the full page as context.
+- Uses nearby context only as guidance; the model is instructed to translate only the requested input segments.
+- Includes a context fingerprint in the cache key so unrelated pages do not reuse stale context-aware translations.
 
 ## Glossary
 

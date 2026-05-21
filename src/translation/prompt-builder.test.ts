@@ -4,10 +4,20 @@ import type { TranslateRequest } from '@/src/translation/types';
 
 describe('buildTranslationPrompt', () => {
   it('includes the selected domain profile and glossary terms', () => {
-    const prompt = buildTranslationPrompt(makeRequest({ domainProfile: 'finance' }));
+    const prompt = buildTranslationPrompt({
+      ...makeRequest({ domainProfile: 'finance' }),
+      contextSegments: [
+        {
+          id: 'context-1',
+          text: 'The report discusses operating margin and recurring revenue.',
+        },
+      ],
+    });
 
     expect(prompt).toContain('Treat the page as financial content');
     expect(prompt).toContain('Revenue => 收入');
+    expect(prompt).toContain('Nearby page context:');
+    expect(prompt).toContain('operating margin and recurring revenue');
     expect(prompt).toContain('Target language: zh-CN.');
     expect(prompt).toContain('"id":"segment-1"');
   });

@@ -3,12 +3,15 @@ import { getGlossaryItems, getGlossaryVersion } from '@/src/storage/glossary-sto
 import { getSettings } from '@/src/storage/settings-store';
 import { translateWithDeepSeek } from '@/src/translation/deepseek-provider';
 import { debugError, debugGroup, debugSegments } from '@/src/utils/debug-log';
-import type { TranslatedSegment } from '@/src/translation/types';
+import type { TranslatedSegment, TranslationContextSegment } from '@/src/translation/types';
 import type { ExtensionMessage, TranslationProgress } from '@/src/messaging/messages';
 
 type TranslatePayload = Extract<ExtensionMessage, { type: 'TRANSLATE_SEGMENTS' }>['payload'];
 
 const BATCH_SIZE = 12;
+const CONTEXT_RADIUS = 2;
+const CONTEXT_SEGMENT_LIMIT = 8;
+const CONTEXT_TEXT_LIMIT = 260;
 
 export async function translateSegments(
   payload: TranslatePayload,
@@ -22,12 +25,15 @@ export async function translateSegments(
 
   const results: TranslatedSegment[] = [];
   const uncached = [];
+  const contextVersions = buildContextVersions(payload.segments, payload.pageTitle, payload.pageUrl);
   let cached = 0;
   let translatedCount = 0;
 
   for (const segment of payload.segments) {
     const cachedItem =
-      !payload.force && settings.enableCache ? await getCachedTranslation(segment, settings, glossaryVersion) : null;
+      !payload.force && settings.enableCache
+        ? await getCachedTranslation(segment, settings, glossaryVersion, contextVersions.get(segment.id) ?? '')
+        : null;
     if (cachedItem) {
       cached += 1;
       results.push(cachedItem);
@@ -60,8 +66,11 @@ export async function translateSegments(
     const currentBatch = Math.floor(index / BATCH_SIZE) + 1;
     const totalBatches = Math.ceil(uncached.length / BATCH_SIZE);
     debugSegments(debugLogging, `DeepSeek batch ${currentBatch}/${totalBatches} source`, batch);
+    const contextSegments = buildBatchContext(payload.segments, batch);
+    debugSegments(debugLogging, `DeepSeek batch ${currentBatch}/${totalBatches} context`, contextSegments);
     const translated = await translateBatchWithFallback({
       batch,
+      contextSegments,
       currentBatch,
       debugLogging,
       glossary,
@@ -75,7 +84,7 @@ export async function translateSegments(
     results.push(...translated);
     translatedCount += translated.length;
     if (settings.enableCache) {
-      await saveCachedTranslations(translated, settings, glossaryVersion);
+      await saveCachedTranslations(translated, settings, glossaryVersion, contextVersions);
     }
     onBatchTranslated?.(translated);
 
@@ -95,6 +104,7 @@ export async function translateSegments(
 
 type TranslateBatchOptions = {
   batch: TranslatePayload['segments'];
+  contextSegments: TranslationContextSegment[];
   currentBatch: number;
   debugLogging: boolean;
   glossary: Awaited<ReturnType<typeof getGlossaryItems>>;
@@ -108,6 +118,7 @@ async function translateBatchWithFallback(options: TranslateBatchOptions): Promi
   try {
     return await translateWithDeepSeek({
       segments: options.batch,
+      contextSegments: options.contextSegments,
       pageTitle: options.pageTitle,
       pageUrl: options.pageUrl,
       settings: options.settings,
@@ -134,6 +145,7 @@ async function translateBatchWithFallback(options: TranslateBatchOptions): Promi
       try {
         const translated = await translateWithDeepSeek({
           segments: [segment],
+          contextSegments: buildSingleSegmentContext(options.contextSegments, segment.id),
           pageTitle: options.pageTitle,
           pageUrl: options.pageUrl,
           settings: options.settings,
@@ -169,4 +181,63 @@ function isRequestLevelError(error: unknown) {
     message.includes('DeepSeek request timed out') ||
     message.includes('DeepSeek API error:')
   );
+}
+
+function buildBatchContext(allSegments: TranslatePayload['segments'], batch: TranslatePayload['segments']) {
+  const batchIds = new Set(batch.map((segment) => segment.id));
+  const batchIndexes = batch
+    .map((segment) => allSegments.findIndex((candidate) => candidate.id === segment.id))
+    .filter((index) => index >= 0);
+  if (batchIndexes.length === 0) return [];
+
+  const start = Math.max(0, Math.min(...batchIndexes) - CONTEXT_RADIUS);
+  const end = Math.min(allSegments.length, Math.max(...batchIndexes) + CONTEXT_RADIUS + 1);
+
+  return allSegments
+    .slice(start, end)
+    .filter((segment) => !batchIds.has(segment.id))
+    .slice(0, CONTEXT_SEGMENT_LIMIT)
+    .map(toContextSegment);
+}
+
+function buildSingleSegmentContext(contextSegments: TranslationContextSegment[], segmentId: string) {
+  return contextSegments.filter((segment) => segment.id !== segmentId).slice(0, CONTEXT_SEGMENT_LIMIT);
+}
+
+function buildContextVersions(segments: TranslatePayload['segments'], pageTitle: string, pageUrl: string) {
+  const versions = new Map<string, string>();
+
+  for (const segment of segments) {
+    const context = buildBatchContext(segments, [segment]);
+    versions.set(
+      segment.id,
+      [
+        pageTitle,
+        safeHostname(pageUrl),
+        ...context.map((contextSegment) => `${contextSegment.id}:${contextSegment.text}`),
+      ].join('\n'),
+    );
+  }
+
+  return versions;
+}
+
+function toContextSegment(segment: TranslatePayload['segments'][number]): TranslationContextSegment {
+  return {
+    id: segment.id,
+    text: truncateContextText(segment.text),
+  };
+}
+
+function truncateContextText(text: string) {
+  const normalized = text.replace(/\s+/g, ' ').trim();
+  return normalized.length > CONTEXT_TEXT_LIMIT ? `${normalized.slice(0, CONTEXT_TEXT_LIMIT)}...` : normalized;
+}
+
+function safeHostname(pageUrl: string) {
+  try {
+    return new URL(pageUrl).hostname;
+  } catch {
+    return pageUrl;
+  }
 }
