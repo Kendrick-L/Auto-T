@@ -100,6 +100,24 @@ export function App() {
         </label>
 
         <label>
+          Domain profile
+          <select
+            value={settings.domainProfile}
+            onChange={(event) =>
+              setSettings({ ...settings, domainProfile: event.target.value as UserSettings['domainProfile'] })
+            }
+          >
+            <option value="general">General</option>
+            <option value="technical-docs">Technical docs</option>
+            <option value="legal">Legal</option>
+            <option value="medical">Medical</option>
+            <option value="finance">Finance</option>
+            <option value="product">Product docs</option>
+          </select>
+          <small>Changes the DeepSeek prompt and cache key for specialized pages.</small>
+        </label>
+
+        <label>
           Display mode
           <select
             value={settings.displayMode}

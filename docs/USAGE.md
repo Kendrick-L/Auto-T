@@ -103,7 +103,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.17`.
+Current version: `0.1.18`.
 
 ## Configure DeepSeek
 
@@ -287,6 +287,21 @@ Turn debug logging off after diagnosis, especially on private pages.
 
 - Uses more formal language and preserves citations, numbers, formulas, and named entities.
 
+## Domain Profiles
+
+Domain profile changes the role instructions sent to DeepSeek and is part of the translation cache key.
+
+Available profiles:
+
+- `General`: everyday webpages.
+- `Technical docs`: API docs, CLI commands, package names, file paths, and UI labels.
+- `Legal`: obligations, conditions, dates, party names, and compliance wording.
+- `Medical`: clinical terms, dosages, measurements, warnings, and condition names.
+- `Finance`: tickers, currencies, percentages, reporting terms, metrics, and risk language.
+- `Product docs`: feature names, plan names, UI labels, and workflow terms.
+
+Changing the domain profile can produce different translations for the same text. Auto-T keeps those cache entries separate.
+
 ## Glossary
 
 The glossary lets you define preferred translations.
@@ -304,6 +319,7 @@ Changing the glossary invalidates old cache entries for future translation reque
 Run before pushing or merging:
 
 ```bash
+npm test
 npm run compile
 npm run build
 ```
@@ -341,5 +357,5 @@ Record for each manual run:
 
 - DeepSeek output quality and structure can vary. The parser handles common variants but not every possible malformed response.
 - Large pages should use `Visible` first to avoid slow full-page requests.
-- Dynamic content is not automatically translated yet.
+- Dynamic content auto-translation requires `Auto visible on scroll` to be enabled.
 - Some websites with unusual DOM structures may still include irrelevant text or skip desired text.

@@ -6,6 +6,20 @@ const MODE_INSTRUCTIONS = {
   academic: 'Use formal academic language. Preserve citations, numbers, formulas, and named entities.',
 };
 
+const PROFILE_INSTRUCTIONS = {
+  general: 'Use a general professional translation style suitable for everyday webpages.',
+  'technical-docs':
+    'Treat the page as technical documentation. Preserve API names, CLI commands, file paths, package names, and UI labels.',
+  legal:
+    'Treat the page as legal or compliance content. Use precise legal wording and preserve obligations, conditions, dates, and party names.',
+  medical:
+    'Treat the page as medical or health content. Preserve clinical terms, dosages, measurements, warnings, and condition names.',
+  finance:
+    'Treat the page as financial content. Preserve tickers, currencies, percentages, dates, metrics, risk language, and reporting terms.',
+  product:
+    'Treat the page as product or SaaS documentation. Keep feature names, plan names, UI labels, and workflow terms consistent.',
+};
+
 export function buildTranslationPrompt(request: TranslateRequest) {
   const glossaryText = request.glossary.length
     ? request.glossary
@@ -20,6 +34,7 @@ export function buildTranslationPrompt(request: TranslateRequest) {
     `Page title: ${request.pageTitle}.`,
     `Page URL: ${request.pageUrl}.`,
     MODE_INSTRUCTIONS[request.settings.mode],
+    PROFILE_INSTRUCTIONS[request.settings.domainProfile],
     'Rules:',
     '1. Translate every segment faithfully without adding explanations.',
     '2. Preserve URLs, code identifiers, placeholders, product names, and numbers.',

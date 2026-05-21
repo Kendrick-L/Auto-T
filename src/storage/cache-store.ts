@@ -60,6 +60,7 @@ function getCacheKey(segment: Pick<PageSegment, 'text'>, settings: UserSettings,
     settings.targetLang,
     settings.sourceLang,
     settings.mode,
+    settings.domainProfile,
     stableTextHash(glossaryVersion),
   ].join(':');
 }

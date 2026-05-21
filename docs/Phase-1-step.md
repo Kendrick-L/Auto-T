@@ -169,7 +169,7 @@ When a new user requirement arrives:
 
 ## Next Recommended Step
 
-Run a manual Chrome test with a real DeepSeek API Key, then record:
+Phase 1 is ready for manual Chrome validation. Run a manual Chrome test with a real DeepSeek API Key, then record:
 
 - Chrome version.
 - Test URL. Start with `http://127.0.0.1:38476/` from `npm run smoke:manual:server`.
@@ -178,3 +178,5 @@ Run a manual Chrome test with a real DeepSeek API Key, then record:
 - Result for `Page`.
 - Result for dynamic content after enabling `Auto visible on scroll`.
 - Any parser or layout errors.
+
+Quality-focused feature work continues in `docs/Phase-2-step.md`.

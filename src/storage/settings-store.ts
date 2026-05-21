@@ -5,6 +5,7 @@ export type UserSettings = {
   targetLang: 'zh-CN' | 'en' | 'ja' | 'ko';
   sourceLang: 'auto' | 'en' | 'zh-CN' | 'ja' | 'ko';
   mode: 'normal' | 'technical' | 'academic';
+  domainProfile: 'general' | 'technical-docs' | 'legal' | 'medical' | 'finance' | 'product';
   displayMode: 'bilingual' | 'translation-only';
   autoTranslate: boolean;
   enableCache: boolean;
@@ -18,6 +19,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   targetLang: 'zh-CN',
   sourceLang: 'auto',
   mode: 'normal',
+  domainProfile: 'general',
   displayMode: 'bilingual',
   autoTranslate: false,
   enableCache: true,

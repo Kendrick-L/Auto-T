@@ -109,7 +109,7 @@ stage/m1-mvp-stability
 | --- | --- | --- | --- |
 | 多翻译引擎 | 官网/商店列出 DeepL、OpenAI、Gemini、Claude、DeepSeek 等。 | DeepSeek 单引擎。 | M2 后保留 provider 抽象，M8 扩展多引擎。 |
 | AI 术语库 | 支持自定义术语，提升特定术语一致性。 | 已有基础 glossary，已纳入 cache version。 | M2 增强域名级、页面级、导入导出。 |
-| AI 专家/行业身份 | 可设定特定行业身份进行专业翻译。 | 仅 normal/technical/academic。 | M2 增加领域 Profile。 |
+| AI 专家/行业身份 | 可设定特定行业身份进行专业翻译。 | 已支持基础 Domain profile：general、technical docs、legal、medical、finance、product docs。 | M2 继续增强上下文和质量评测。 |
 | 上下文感知翻译 | 官网强调 context-aware translation，结合术语和领域上下文。 | Prompt 带页面标题/URL，缺少全文上下文摘要。 | M2。 |
 | 高级模型额度 | 定价页强调会员支持 DeepSeek、DeepL、OpenAI、Claude、Gemini 等高级服务。 | 用户自带 DeepSeek Key，无额度系统。 | 暂不做商业化，M8 可评估额度统计。 |
 
@@ -176,7 +176,7 @@ stage/m1-mvp-stability
 - Prompt 分层：普通、技术、学术三个模式独立模板。
 - 增加页面上下文摘要：页面标题、URL、前后段上下文、站点类型。
 - 术语库增强：全局术语、域名术语、页面级术语、导入导出、术语版本号。
-- 增加领域 Profile：通用、技术、学术、法律、医学、金融、产品文档。
+- 增加领域 Profile：通用、技术文档、法律、医学、金融、产品文档。
 - 增加 JSON 修复 fallback：模型返回代码块、前后废话、漏段时可恢复。
 - 增加段落级失败 fallback，单批失败不影响整页。
 - 增加 DeepSeek 模型配置项：`deepseek-chat` 默认，后续可选 reasoner。
