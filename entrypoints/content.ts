@@ -5,8 +5,11 @@ import {
   resolveContextTranslationTarget,
 } from '@/src/core/context-translation';
 import {
+  clearInteractionTranslations,
   clearInteractionLoading,
+  hasInteractionTranslation,
   renderInteractionLoading,
+  removeInteractionTranslation,
   renderInteractionTranslation,
 } from '@/src/core/interaction-renderer';
 import { shouldSkipChineseSourceTranslation } from '@/src/core/language-detect';
@@ -61,7 +64,7 @@ export default defineContentScript({
         }
 
         if (message.type === 'COMMAND_TRANSLATE_VISIBLE') {
-          translatePage('visible', false)
+          translatePage('visible', false, { clearInteractionTranslationsFirst: true })
             .then(sendResponse)
             .catch((error: unknown) => {
               sendResponse({
@@ -161,7 +164,15 @@ function getVisibleSegments() {
   return visibleSegmentsCache;
 }
 
-async function translatePage(scope: 'visible' | 'page', force: boolean): Promise<ExtensionResponse> {
+type TranslatePageOptions = {
+  clearInteractionTranslationsFirst?: boolean;
+};
+
+async function translatePage(
+  scope: 'visible' | 'page',
+  force: boolean,
+  options: TranslatePageOptions = {},
+): Promise<ExtensionResponse> {
   const settings = await getContentSettings();
   if (!settings) return extensionInvalidatedResponse();
   if (!settings.extensionEnabled) {
@@ -172,6 +183,11 @@ async function translatePage(scope: 'visible' | 'page', force: boolean): Promise
   }
 
   const debugLogging = settings.debugLogging || isLocalDebugEnabled();
+  if (options.clearInteractionTranslationsFirst) {
+    clearInteractionTranslations();
+    interactionTargets.clear();
+  }
+
   const segments =
     scope === 'visible'
       ? getVisibleSegments()
@@ -229,6 +245,12 @@ async function translateContext(): Promise<ExtensionResponse> {
       pageTitle: document.title,
     });
     return { ok: true, data: { segments: [], skipped: 'chinese-source' } };
+  }
+
+  if (hasInteractionTranslation(target.segment.id)) {
+    removeInteractionTranslation(target.segment.id);
+    interactionTargets.delete(target.segment.id);
+    return { ok: true, data: { segments: [], toggled: 'interaction-off' } };
   }
 
   interactionTargets.set(target.segment.id, target);

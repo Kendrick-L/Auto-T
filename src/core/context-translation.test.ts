@@ -81,6 +81,21 @@ describe('context translation target resolution', () => {
     expect(target?.segment.text).toBe('Second sentence has an inline word.');
   });
 
+  it('keeps inline code literals protected in hovered sentence translations', () => {
+    document.body.innerHTML = `
+      <main>
+        <p id="hovered">Run <code>npm install</code> before starting the dev server. Then open the extension.</p>
+      </main>
+    `;
+    const textNode = document.querySelector('code')?.firstChild as Text;
+    window.getSelection()?.removeAllRanges();
+    mockCaret(textNode, 4);
+
+    const target = resolveHoverTarget({ x: 20, y: 20 });
+
+    expect(target?.segment.text).toBe('Run npm install before starting the dev server.');
+    expect(target?.segment.protectedLiterals).toEqual(['npm install']);
+  });
 
   it('falls back to the paragraph when sentence splitting cannot produce useful text', () => {
     document.body.innerHTML = `

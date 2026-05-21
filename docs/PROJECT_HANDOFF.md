@@ -12,7 +12,7 @@ Auto-T is a Chrome MV3 bilingual webpage translation extension powered by DeepSe
 - Working directory: `/Users/lvtong/Documents/Practice/Auto-T`
 - Current branch: `agent/m1/debug-segment-console`
 - Latest pushed commit before M3 shortcut/context work: `6832c78 fix: harden translation response parser`
-- Current package version in working tree: `0.1.28`
+- Current package version in working tree: `0.1.29`
 
 Important: run this first in any new window:
 
@@ -102,7 +102,9 @@ Completed in this branch:
 - Content script translates visible text on command without changing popup behavior.
 - Context command translates selected text first; without selection, it uses the latest mouse position to translate the pointed sentence or paragraph.
 - Hover context sentence detection uses the whole owner block, so inline word wrappers do not collapse the target to a single word.
-- Context translations are inserted after the target block and repeated triggers update the existing interaction node.
+- Context translations are inserted as compact readable blocks; table-cell translations stay inside the cell and compact sources such as buttons get roomier block styling.
+- Repeating `Option+T` on the same target removes the existing interaction translation without sending a new DeepSeek request.
+- Running `Option+V` clears existing `Option+T` interaction translations before visible-area translation renders.
 - Context translations render a loading state using the same loading class pattern as normal translations.
 - Enabling Auto-T keeps `Auto visible on scroll` off; scroll-triggered translation must be turned on explicitly.
 - Restore removes both normal translations and interaction translations.
@@ -119,6 +121,8 @@ For M3, run a manual Chrome smoke check with a real extension load:
 - Confirm `Option+V` translates the current viewport.
 - Confirm `Option+T` translates selected words/phrases/sentences with paragraph context.
 - Confirm `Option+T` with no selection translates the hovered sentence or paragraph, including when the mouse is over an inline word.
+- Confirm repeated `Option+T` on the same target toggles the interaction translation off.
+- Confirm `Option+V` clears existing `Option+T` translations before rendering visible-area translation.
 - Clear one shortcut in `chrome://extensions/shortcuts` and confirm Options shows `Not bound / possible conflict`.
 - Confirm popup `Visible`, `Page`, `Retry visible`, `Restore`, and `Disable / Enable Auto-T` still work.
 
