@@ -11,8 +11,8 @@ Auto-T is a Chrome MV3 bilingual webpage translation extension powered by DeepSe
 - Repository: `git@github.com:Kendrick-L/Auto-T.git`
 - Working directory: `/Users/lvtong/Documents/Practice/Auto-T`
 - Current branch: `agent/m1/debug-segment-console`
-- Latest pushed commit before protected inline literal work: `690348d feat: add deepseek model selector`
-- Current package version in working tree: `0.1.24`
+- Latest pushed commit before response parser fallback work: `45082a4 fix: preserve inline code literals`
+- Current package version in working tree: `0.1.25`
 
 Important: run this first in any new window:
 
@@ -80,6 +80,7 @@ Completed:
 - DeepSeek model selector supports `deepseek-chat` and `deepseek-reasoner`.
 - DeepSeek model is included in the translation cache key.
 - Inline `code`, `kbd`, and `samp` literals inside paragraph text are protected with placeholders and restored unchanged in translations.
+- Response parser recovers JSON from fenced/prose-wrapped responses, repairs common punctuation issues, skips malformed segment entries, and reads alternate/nested translation fields.
 
 Phase 2 current docs:
 
@@ -89,13 +90,13 @@ docs/Phase-2-step.md
 
 ## Recommended Next Phase 2 Task
 
-Continue with response parser / JSON repair fallback, then record a small quality benchmark if API quota is allowed.
+Record a small quality benchmark if API quota is allowed, or continue with site-level privacy/cache policy.
 
 Expected scope:
 
-- Add parser fixtures for code fences, prose before/after JSON, missing fields, and non-string values.
-- Keep tests offline; do not call DeepSeek.
-- Update docs with parser behavior and remaining limitations.
+- Pick a small fixed set such as GitHub README, MDN, Wikipedia, and one news article.
+- Confirm whether DeepSeek API quota may be used before running real translation.
+- Record URL, model, mode, profile, target language, and quality notes.
 - Update docs:
   - `docs/Phase-2-step.md`
   - `docs/USAGE.md`

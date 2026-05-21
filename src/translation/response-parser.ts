@@ -8,13 +8,19 @@ export function parseTranslationResponse(content: string, sourceSegments: PageSe
   const sourceById = new Map(sourceSegments.map((segment) => [segment.id, segment.text]));
   const segmentById = new Map(sourceSegments.map((segment) => [segment.id, segment]));
 
-  return parsed.segments
+  const translations = parsed.segments
     .filter((segment) => sourceById.has(segment.id))
     .map((segment) => ({
       id: segment.id,
       source: sourceById.get(segment.id) ?? '',
       translation: restoreProtectedLiterals(segment.translation, segmentById.get(segment.id)),
     }));
+
+  if (sourceSegments.length > 0 && translations.length === 0) {
+    throw new Error('DeepSeek response did not contain usable translations.');
+  }
+
+  return translations;
 }
 
 type ParsedResponse = {
@@ -29,24 +35,25 @@ function parseSegments(value: unknown): ParsedResponse {
     throw new Error('DeepSeek response JSON must contain a segments array.');
   }
 
+  const segments: ParsedResponse['segments'] = [];
+  for (const segment of value.segments) {
+    const parsed = parseSegment(segment);
+    if (parsed) segments.push(parsed);
+  }
+
   return {
-    segments: value.segments.map((segment, index) => {
-      if (!isRecord(segment)) {
-        throw new Error(`DeepSeek segment ${index + 1} was not an object.`);
-      }
-
-      const id = toStringValue(segment.id);
-      const translation = readTranslation(segment);
-      if (!id) {
-        throw new Error(`DeepSeek segment ${index + 1} was missing id.`);
-      }
-      if (!translation) {
-        throw new Error(`DeepSeek segment ${index + 1} was missing translation text.`);
-      }
-
-      return { id, translation };
-    }),
+    segments,
   };
+}
+
+function parseSegment(segment: unknown) {
+  if (!isRecord(segment)) return null;
+
+  const id = toStringValue(segment.id);
+  const translation = readTranslation(segment);
+  if (!id || !translation) return null;
+
+  return { id, translation };
 }
 
 function readTranslation(segment: Record<string, unknown>) {
@@ -55,14 +62,25 @@ function readTranslation(segment: Record<string, unknown>) {
     toStringValue(segment.target) ??
     toStringValue(segment.translatedText) ??
     toStringValue(segment.text) ??
-    readFirstStringValue(segment.translation)
+    readFirstStringValue(segment.translation) ??
+    readFirstStringValue(segment.target) ??
+    readFirstStringValue(segment.translatedText) ??
+    readFirstStringValue(segment.text)
   );
 }
 
 function readFirstStringValue(value: unknown): string | undefined {
+  if (Array.isArray(value)) {
+    for (const nestedValue of value) {
+      const text = toStringValue(nestedValue) ?? readFirstStringValue(nestedValue);
+      if (text) return text;
+    }
+    return undefined;
+  }
+
   if (!isRecord(value)) return undefined;
   for (const nestedValue of Object.values(value)) {
-    const text = toStringValue(nestedValue);
+    const text = toStringValue(nestedValue) ?? readFirstStringValue(nestedValue);
     if (text) return text;
   }
   return undefined;
@@ -80,16 +98,50 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function extractJson(content: string) {
   const trimmed = content.trim();
-  if (trimmed.startsWith('{')) return trimmed;
 
   const match = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (match?.[1]) return match[1].trim();
 
-  const start = trimmed.indexOf('{');
-  const end = trimmed.lastIndexOf('}');
-  if (start >= 0 && end > start) return trimmed.slice(start, end + 1);
+  const jsonObject = extractFirstBalancedJsonObject(trimmed);
+  if (jsonObject) return jsonObject;
 
   throw new Error('DeepSeek response did not contain JSON.');
+}
+
+function extractFirstBalancedJsonObject(text: string) {
+  const start = text.indexOf('{');
+  if (start < 0) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === '\\' && inString) {
+      escaped = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === '{') depth += 1;
+    if (char === '}') depth -= 1;
+    if (depth === 0) return text.slice(start, index + 1);
+  }
+
+  return null;
 }
 
 function parseJsonWithRepair(json: string): unknown {
@@ -108,5 +160,7 @@ function parseJsonWithRepair(json: string): unknown {
 }
 
 function repairCommonJsonTypos(json: string) {
-  return json.replace(/"([A-Za-z][A-Za-z0-9_]*)"\s*>/g, '"$1":');
+  return json
+    .replace(/"([A-Za-z][A-Za-z0-9_]*)"\s*>/g, '"$1":')
+    .replace(/,\s*([}\]])/g, '$1');
 }

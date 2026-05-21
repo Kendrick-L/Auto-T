@@ -29,6 +29,7 @@ Improve translation quality and professional control after the Phase 1 webpage t
 | Cache management UI and helpers | Done | `agent/m1/debug-segment-console` | Options can show cache count and clear all cached translations. Popup identifies the active http/https hostname and can clear cached entries for the current site. |
 | DeepSeek model selector | Done | `agent/m1/debug-segment-console` | Options can choose `deepseek-chat` or `deepseek-reasoner`; the selected model is used in DeepSeek requests and separated in cache keys. |
 | Protected inline literals | Done | `agent/m1/debug-segment-console` | Inline `code`, `kbd`, and `samp` literals inside paragraph text are sent as protected placeholders and restored into translations unchanged. |
+| Response parser fallback | Done | `agent/m1/debug-segment-console` | Parser recovers JSON from fences/prose, repairs common punctuation issues, skips malformed segment entries, and recovers alternate/nested translation fields. |
 
 ## Completed Capabilities
 
@@ -45,6 +46,7 @@ Improve translation quality and professional control after the Phase 1 webpage t
 - Options includes a DeepSeek model selector for `deepseek-chat` and `deepseek-reasoner`.
 - DeepSeek requests use the selected model, and cache keys include the selected model.
 - Inline code/path literals inside paragraphs are preserved in translated text while block code remains skipped.
+- DeepSeek response parsing handles common JSON wrappers, small punctuation mistakes, malformed entries, and alternate translation fields.
 
 ## Current Gaps
 
@@ -71,7 +73,7 @@ Improve translation quality and professional control after the Phase 1 webpage t
 
 ## Next Recommended Step
 
-Continue with response parser / JSON repair fallback, then record a small quality benchmark if API quota is allowed.
+Record a small quality benchmark if API quota is allowed, or continue with site-level privacy/cache policy.
 
 ## New Window Handoff
 

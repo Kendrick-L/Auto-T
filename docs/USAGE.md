@@ -106,7 +106,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.24`.
+Current version: `0.1.25`.
 
 ## Configure DeepSeek
 
@@ -277,6 +277,19 @@ Use this to identify the failing stage:
 - Present with `inserted` or `updated` but not visible: renderer/CSS/layout issue.
 
 Turn debug logging off after diagnosis, especially on private pages.
+
+## Response Parsing
+
+Auto-T expects DeepSeek to return JSON, but it tolerates several common response variants:
+
+- JSON wrapped in a fenced code block.
+- Brief prose before or after the JSON object.
+- Common typo where a quoted field name is followed by `>` instead of `:`.
+- Trailing commas before `}` or `]`.
+- Alternate translation fields such as `target`, `translatedText`, or nested text.
+- Malformed individual segment objects; valid segments from the same response can still render.
+
+If no JSON object or no usable translated segment can be recovered, Auto-T treats the batch as failed and may fall back to smaller translation requests.
 
 ## Display Modes
 

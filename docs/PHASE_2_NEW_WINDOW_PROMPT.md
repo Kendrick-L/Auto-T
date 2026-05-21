@@ -41,22 +41,21 @@ Phase 2 已完成：
 - Popup 可识别当前 http/https hostname 并清理当前站点缓存
 - Popup 可 Pause/Resume 翻译，Chrome toolbar 有 active/paused icon 和 OFF badge
 - DeepSeek model selector 支持 `deepseek-chat` / `deepseek-reasoner`，并进入 cache key
+- Response parser 已支持 fenced/prose-wrapped JSON、尾逗号、部分坏 segment、alternate/nested translation 字段恢复
 
 下一步推荐任务：
-实现 Response parser / JSON repair fallback。Glossary 相关优先级已调低，当前没有配置化需求。
+记录小规模 quality benchmark，或继续做站点级 privacy/cache policy。Glossary 相关优先级已调低，当前没有配置化需求。
 
 建议范围：
-- 增强 `src/translation/response-parser.ts`
-- 覆盖模型返回代码块、JSON 前后废话、缺失字段、非 string 字段等情况
-- 保持测试离线，不消耗 DeepSeek API quota
+- 如做 benchmark，先确认是否允许消耗 DeepSeek API quota
+- 如做站点级策略，优先考虑当前站点禁用 cache 和敏感站点提醒
 - 更新文档：
   - docs/Phase-2-step.md
   - docs/USAGE.md
   - ITERATION_PLAN.md
   - 如接手状态变化，更新 docs/PROJECT_HANDOFF.md
 - 添加测试：
-  - parser fixture 覆盖常见坏 JSON 包装
-  - 失败恢复不能导致整批翻译丢失
+  - 站点策略 storage / UI 行为，或 benchmark 记录格式
 
 约束：
 - 不要消耗 DeepSeek API quota，除非用户明确允许。

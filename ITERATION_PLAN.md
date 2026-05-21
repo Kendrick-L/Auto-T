@@ -180,7 +180,7 @@ stage/m1-mvp-stability
 - 增加页面上下文摘要：页面标题、URL、前后段上下文、站点类型。当前已支持邻近扫描段落，后续补页面级摘要。
 - 术语库增强：全局术语、域名术语、页面级术语、导入导出、术语版本号。
 - 增加领域 Profile：通用、技术文档、法律、医学、金融、产品文档。
-- 增加 JSON 修复 fallback：模型返回代码块、前后废话、漏段时可恢复。
+- 增加 JSON 修复 fallback：模型返回代码块、前后废话、漏段、尾逗号、部分坏 segment 时可恢复。
 - 增加段落级失败 fallback，单批失败不影响整页。
 - 增加 DeepSeek 模型配置项：`deepseek-chat` 默认，可选 `deepseek-reasoner`，并纳入缓存 key。
 - 增加缓存和隐私策略：缓存清理、站点禁用缓存、敏感站点提醒。目前 Options 已支持查看缓存数量和全量清理，Popup 已支持按当前 http/https 站点清理带 hostname 的缓存条目。
