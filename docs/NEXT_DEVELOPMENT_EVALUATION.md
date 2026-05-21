@@ -4,6 +4,14 @@
 
 根据 `ITERATION_PLAN.md` 和沉浸式翻译对标结果，Auto-T 现在处于 M1 收尾阶段。下一步不宜直接跳到 PDF、字幕或图片翻译，应该先把网页阅读闭环做到可靠、快、低打扰，再进入 M2/M3。
 
+## 新增文档参考价值评估
+
+`docs/immersive-translate-analysis.md` 有中高参考价值。它适合做产品能力和阶段规划校准，尤其是网页、PDF、字幕、输入框、多引擎、隐私边界这些能力如何拆 milestone。它不适合直接照搬实现，因为其中不少内容来自公开文档和架构推断，且沉浸式翻译新版核心并不开源。
+
+`docs/immersive-translate-dom-analysis.md` 有高参考价值。它对当前 Auto-T 最有用的是 DOM 扫描和译文注入策略：站点规则、正文容器优先、排除选择器、TextNode 分段、动态可见区域翻译、原文恢复策略。这些可以直接转化为 Auto-T 的扫描器和 M4 动态站点适配基础。
+
+本轮先落地低风险部分：增加 page rule 扫描层，支持内置站点规则、容器优先、排除选择器和额外块级选择器。暂不照搬 TextNode 替换和 cloneNode 双语方案，因为当前 portal/inline 渲染已经解决 Lexical 清理问题，贸然替换原 TextNode 会扩大恢复和页面状态风险。
+
 ## 优先级排序
 
 ### P0: M1 收尾

@@ -1,4 +1,5 @@
 import { EXTENSION_SEGMENT_ATTR, EXTENSION_TRANSLATION_CLASS } from '@/src/constants';
+import { getActivePageRule, getRuleBoundarySelector, getRuleExcludeSelector, getScanRoots } from '@/src/core/page-rules';
 import { stableTextHash } from '@/src/utils/hash';
 
 export type PageSegment = {
@@ -68,11 +69,12 @@ const HARD_SKIP_SELECTOR = [
 
 export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSegment[] {
   const limit = options.limit ?? 80;
-  const textNodes = collectTextNodes(options.viewportOnly ?? false);
+  const pageRule = getActivePageRule();
+  const textNodes = collectTextNodes(options.viewportOnly ?? false, pageRule);
   const candidates = new Map<HTMLElement, string[]>();
 
   for (const node of textNodes) {
-    const owner = findSegmentOwner(node);
+    const owner = findSegmentOwner(node, pageRule);
     if (!owner) continue;
 
     const parts = candidates.get(owner) ?? [];
@@ -109,42 +111,50 @@ export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSeg
   return segments;
 }
 
-function collectTextNodes(viewportOnly: boolean) {
+function collectTextNodes(viewportOnly: boolean, pageRule: ReturnType<typeof getActivePageRule>) {
   const nodes: Text[] = [];
   const root = document.body;
   if (!root) return nodes;
 
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      const text = normalizeText(node.textContent ?? '');
-      if (!text) return NodeFilter.FILTER_REJECT;
+  const seen = new Set<Text>();
+  const scanRoots = getScanRoots(root, pageRule);
 
-      const parent = node.parentElement;
-      if (!parent || parent.closest(HARD_SKIP_SELECTOR)) return NodeFilter.FILTER_REJECT;
-      if (!isVisible(parent)) return NodeFilter.FILTER_REJECT;
-      if (viewportOnly && !isTextNodeInViewport(node as Text)) return NodeFilter.FILTER_REJECT;
+  for (const scanRoot of scanRoots) {
+    const walker = document.createTreeWalker(scanRoot, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const text = normalizeText(node.textContent ?? '');
+        if (!text) return NodeFilter.FILTER_REJECT;
 
-      return NodeFilter.FILTER_ACCEPT;
-    },
-  });
+        const parent = node.parentElement;
+        if (!parent || shouldSkipElement(parent, pageRule)) return NodeFilter.FILTER_REJECT;
+        if (!isVisible(parent)) return NodeFilter.FILTER_REJECT;
+        if (viewportOnly && !isTextNodeInViewport(node as Text)) return NodeFilter.FILTER_REJECT;
 
-  let node = walker.nextNode();
-  while (node) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      nodes.push(node as Text);
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+
+    let node = walker.nextNode();
+    while (node) {
+      if (node.nodeType === Node.TEXT_NODE && !seen.has(node as Text)) {
+        seen.add(node as Text);
+        nodes.push(node as Text);
+      }
+      node = walker.nextNode();
     }
-    node = walker.nextNode();
   }
 
   return nodes;
 }
 
-function findSegmentOwner(textNode: Text) {
+function findSegmentOwner(textNode: Text, pageRule: ReturnType<typeof getActivePageRule>) {
   let element = textNode.parentElement;
   let fallback: HTMLElement | null = null;
+  const ruleBoundarySelector = getRuleBoundarySelector(pageRule);
 
   while (element && element !== document.body && element !== document.documentElement) {
-    if (element.closest(HARD_SKIP_SELECTOR)) return null;
+    if (shouldSkipElement(element, pageRule)) return null;
+    if (ruleBoundarySelector && element.matches(ruleBoundarySelector)) return element;
     if (element.matches(SEGMENT_BOUNDARY_SELECTOR)) return element;
 
     const style = window.getComputedStyle(element);
@@ -156,6 +166,13 @@ function findSegmentOwner(textNode: Text) {
   }
 
   return fallback;
+}
+
+function shouldSkipElement(element: HTMLElement, pageRule: ReturnType<typeof getActivePageRule>) {
+  if (element.closest(HARD_SKIP_SELECTOR)) return true;
+
+  const ruleExcludeSelector = getRuleExcludeSelector(pageRule);
+  return Boolean(ruleExcludeSelector && element.closest(ruleExcludeSelector));
 }
 
 function normalizeText(text: string) {
