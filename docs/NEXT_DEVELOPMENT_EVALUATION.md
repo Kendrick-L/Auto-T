@@ -29,6 +29,7 @@
 - 轻量 MutationObserver，动态内容插入后刷新当前视口扫描并复用自动可视翻译。
 - 隐私边界继续完善：缓存、发送内容、构建期 key 暴露风险。
 - 扫描器自动化测试，先覆盖 page rule 和短文本捕获，降低站点规则迭代风险。
+- 本地手动 smoke fixture，用固定页面验证 Visible、Page、Restore 和动态插入内容。
 
 UI：
 

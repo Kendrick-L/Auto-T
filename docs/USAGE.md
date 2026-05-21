@@ -60,6 +60,18 @@ Automated scanner tests:
 npm test
 ```
 
+Manual Chrome smoke page:
+
+```bash
+npm run smoke:manual:server
+```
+
+Then open:
+
+```text
+http://127.0.0.1:38476/
+```
+
 DeepSeek smoke test:
 
 ```bash
@@ -91,7 +103,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.16`.
+Current version: `0.1.17`.
 
 ## Configure DeepSeek
 
@@ -179,6 +191,19 @@ Recommended workflow:
 5. Use `Page` only when you want broader coverage.
 
 For hands-free reading, enable `Auto visible on scroll`. It is off by default because every newly translated viewport can consume DeepSeek API quota. When enabled, Auto-T also watches for newly inserted visible page content and routes it through the same auto visible flow.
+
+## Manual Chrome Smoke Test
+
+Use the local fixture when you need a repeatable browser check that does not depend on a third-party site changing its HTML.
+
+1. Run `npm run build`.
+2. Reload `.output/chrome-mv3` from `chrome://extensions`.
+3. Run `npm run smoke:manual:server`.
+4. Open `http://127.0.0.1:38476/`.
+5. Click `Visible` and confirm regular paragraphs, headings, lists, and short buttons are translated.
+6. Click `Page` and confirm nav, footer, and code blocks are not translated.
+7. Click `Restore` and confirm Auto-T translation nodes are removed.
+8. Enable `Auto visible on scroll`, click `Add Dynamic Section`, and confirm the inserted section becomes eligible for automatic translation.
 
 ## Debug Translation Pipeline
 

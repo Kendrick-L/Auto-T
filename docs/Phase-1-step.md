@@ -52,6 +52,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 | Rule-aware DOM scan | Done | `agent/m1/debug-segment-console` | Adds a page-rule layer for site-specific containers, excludes, and extra block selectors without changing insertion strategy. |
 | Scanner smoke tests | Done | `agent/m1/debug-segment-console` | Adds Vitest coverage for Mobalytics/GitHub page rules, generic scanning, short headings, and short button labels. |
 | Dynamic content observer | Done | `agent/m1/debug-segment-console` | Adds a MutationObserver that refreshes visible pre-scan and triggers auto visible translation for newly inserted page content. |
+| Manual smoke fixture | Done | `agent/m1/debug-segment-console` | Adds a local fixture page and server for repeatable Chrome checks of visible/page/restore/dynamic content behavior. |
 
 ## Completed Capabilities
 
@@ -91,6 +92,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - DOM scanning can use built-in page rules for site-specific content containers and exclusion selectors.
 - Automated scanner tests cover built-in page rules and short UI labels/headings.
 - Dynamic page content can trigger a refreshed visible scan and reuse the auto visible translation flow.
+- A local manual smoke page is available for repeatable Chrome extension checks.
 
 ## Current Gaps
 
@@ -142,6 +144,7 @@ Stabilize the core webpage translation experience before moving to quality, inte
 - [x] DOM scanner supports page-rule containers, excludes, and extra block selectors.
 - [x] Scanner smoke tests cover rule-aware scanning and short button/heading text.
 - [x] MutationObserver refreshes visible scanning for newly inserted page content.
+- [x] Local manual smoke fixture and server are available.
 - [ ] Manual Chrome load test recorded with test URL.
 - [ ] Real Chrome extension page-translation smoke test recorded.
 
@@ -169,8 +172,9 @@ When a new user requirement arrives:
 Run a manual Chrome test with a real DeepSeek API Key, then record:
 
 - Chrome version.
-- Test URL.
+- Test URL. Start with `http://127.0.0.1:38476/` from `npm run smoke:manual:server`.
 - Target language.
 - Result for `Visible`.
 - Result for `Page`.
+- Result for dynamic content after enabling `Auto visible on scroll`.
 - Any parser or layout errors.

@@ -152,6 +152,7 @@ stage/m1-mvp-stability
 - 增加 page rule 扫描层，先内置 Mobalytics/GitHub 的内容容器和排除规则。
 - 增加扫描器自动化测试，覆盖站点规则、排除规则、短标题和短按钮文本。
 - 增加轻量 MutationObserver，在动态内容插入后刷新可视区域扫描并复用自动可视翻译。
+- 增加本地手动 smoke fixture，固定验证 Visible、Page、Restore 和动态内容场景。
 
 验收：
 
@@ -164,6 +165,7 @@ stage/m1-mvp-stability
 - 使用说明中包含 DeepSeek API Key、缓存和隐私边界。
 - 本地开发可通过 `.env` 提供 DeepSeek API Key，并说明构建期注入风险。
 - 开启自动可视翻译后，新增可见内容可被自动扫描和翻译。
+- 本地 smoke fixture 可作为手动 Chrome 验收的固定测试 URL。
 
 ## Milestone 2: 翻译质量增强
 
