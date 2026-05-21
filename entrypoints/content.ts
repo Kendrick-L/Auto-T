@@ -4,7 +4,11 @@ import {
   type PointerPosition,
   resolveContextTranslationTarget,
 } from '@/src/core/context-translation';
-import { renderInteractionTranslation } from '@/src/core/interaction-renderer';
+import {
+  clearInteractionLoading,
+  renderInteractionLoading,
+  renderInteractionTranslation,
+} from '@/src/core/interaction-renderer';
 import { clearTranslationLoading, renderTranslationLoading, renderTranslations } from '@/src/core/renderer';
 import { restorePage } from '@/src/core/restore';
 import { getEffectiveDeepSeekApiKey, getSettings } from '@/src/storage/settings-store';
@@ -215,11 +219,16 @@ async function translateContext(): Promise<ExtensionResponse> {
     pageTitle: document.title,
   });
 
-  return translateAndRender([target.segment], false, debugLogging, {
+  renderInteractionLoading(target);
+  const response = await translateAndRender([target.segment], false, debugLogging, {
     contextSegments: target.contextSegments,
     renderLoading: false,
     translationKind: target.translationKind,
   });
+  if (!response.ok) {
+    clearInteractionLoading(target);
+  }
+  return response;
 }
 
 type TranslateAndRenderOptions = {

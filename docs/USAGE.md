@@ -16,7 +16,7 @@ Current MVP features:
 - Show per-text loading indicators while visible/page/scroll translations are running.
 - Use built-in page rules for selected sites to improve content scanning.
 - Refresh visible scanning when dynamic page content is inserted.
-- Pause or resume translation from the popup; Chrome shows a paused badge when Auto-T is stopped.
+- Disable or enable Auto-T from the popup; Chrome shows an `OFF` badge only when Auto-T is globally disabled.
 - Cache translations to reduce repeated API calls.
 - View local cache size and clear all cached translations from Options.
 - Clear cached translations for the current site from the popup.
@@ -109,7 +109,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.26`.
+Current version: `0.1.27`.
 
 ## Configure DeepSeek
 
@@ -184,7 +184,7 @@ Recommended sensitive-data practice:
 
 Available actions:
 
-- `Pause translation` / `Resume translation`: globally stops or resumes Auto-T translation.
+- `Disable Auto-T` / `Enable Auto-T`: globally disables or enables Auto-T. The enabled state does not start translation by itself.
 - `Visible`: translates visible text near the current viewport. This is the recommended default.
 - `Page`: translates more of the page. This can be slower and may consume more API quota.
 - `Retry visible`: re-runs visible translation without cache.
@@ -192,7 +192,7 @@ Available actions:
 - `Clear site`: removes cached translations for the current http/https hostname.
 - `Auto visible on scroll`: when enabled, translates untranslated visible text after scrolling stops.
 
-When Auto-T is paused:
+When Auto-T is disabled:
 
 - The Chrome toolbar icon switches to the paused icon.
 - The toolbar badge shows `OFF`.
@@ -213,7 +213,7 @@ Recommended workflow:
 4. Continue scrolling and click `Visible` again for the next section.
 5. Use `Page` only when you want broader coverage.
 
-For hands-free reading, enable `Auto visible on scroll`. It is off by default because every newly translated viewport can consume DeepSeek API quota. When enabled, Auto-T also watches for newly inserted visible page content and routes it through the same auto visible flow.
+For hands-free reading, enable `Auto visible on scroll`. It is off by default because every newly translated viewport can consume DeepSeek API quota. Enabling Auto-T from the global disabled state leaves `Auto visible on scroll` off; turn it on explicitly when you want scroll-triggered translation. When enabled, Auto-T also watches for newly inserted visible page content and routes it through the same auto visible flow.
 
 ## Use Keyboard Shortcuts
 
@@ -222,11 +222,11 @@ Auto-T does not translate automatically when a page loads, when the mouse moves,
 Default shortcuts:
 
 - `Option+V` on macOS: translate visible text. Chrome manifest syntax stores this as `Alt+V`.
-- `Option+T` on macOS: translate context. If text is selected, Auto-T translates the selection. If nothing is selected, Auto-T translates the sentence under the last mouse position, falling back to the paragraph when sentence detection is not useful.
+- `Option+T` on macOS: translate context. If text is selected, Auto-T translates the selection. If nothing is selected, Auto-T translates the full sentence under the last mouse position, including sentences where the caret lands inside an inline word, and falls back to the paragraph when sentence detection is not useful.
 
 The context shortcut supports a selected word, phrase, sentence, or paragraph. For selected short text, Auto-T sends the surrounding paragraph as context so DeepSeek can choose the current in-page meaning.
 
-Context translations are inserted directly after the target block. Repeating the same context shortcut on the same target updates the existing interaction translation instead of appending duplicates. `Restore` removes both normal page translations and context shortcut translations.
+Context translations are inserted directly after the target block. They use the same loading state pattern as regular page translations. Repeating the same context shortcut on the same target updates the existing interaction translation instead of appending duplicates. `Restore` removes both normal page translations and context shortcut translations.
 
 Shortcut customization:
 
@@ -442,9 +442,9 @@ Manual Chrome test:
 6. Confirm translations appear below visible text.
 7. Click `Visible` again after scrolling.
 8. Click `Page` on a short article.
-9. Click `Pause translation` and confirm the toolbar badge shows `OFF`.
-10. Confirm translation actions are disabled while paused.
-11. Click `Resume translation`.
+9. Click `Disable Auto-T` and confirm the toolbar badge shows `OFF`.
+10. Confirm translation actions are disabled while Auto-T is disabled.
+11. Click `Enable Auto-T` and confirm `Auto visible on scroll` remains off until explicitly selected.
 12. Click `Restore`.
 13. Confirm translations are removed and hidden source text returns.
 14. Confirm the popup shows `Site cache` on an http/https page and `Clear site` is available.

@@ -114,8 +114,9 @@ export function resolveHoverTarget(pointer: PointerPosition): ContextTranslation
   const blockText = getElementText(anchor);
   if (!blockText) return null;
 
-  const nodeText = caret.node.nodeType === Node.TEXT_NODE ? normalizeText(caret.node.textContent ?? '') : '';
-  const sentence = nodeText ? findSentenceAtOffset(caret.node.textContent ?? '', caret.offset) : null;
+  const caretOffsetInBlock = getTextOffsetWithinElement(anchor, caret.node, caret.offset);
+  const sentence =
+    caretOffsetInBlock === null ? null : findSentenceAtOffset(blockText, caretOffsetInBlock);
   const text = normalizeText(sentence ?? '') || blockText;
 
   return {
@@ -247,6 +248,21 @@ function getElementText(element: HTMLElement) {
   }
 
   return normalizeText(parts.join(' '));
+}
+
+function getTextOffsetWithinElement(element: HTMLElement, node: Node, offset: number) {
+  if (!element.contains(node)) return null;
+
+  const range = document.createRange();
+  try {
+    range.selectNodeContents(element);
+    range.setEnd(node, Math.max(0, offset));
+    return normalizeText(range.toString()).length;
+  } catch {
+    return null;
+  } finally {
+    range.detach();
+  }
 }
 
 function getProtectedLiteralsInRange(range: Range) {

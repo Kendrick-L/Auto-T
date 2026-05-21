@@ -173,12 +173,22 @@ export function App() {
 
   async function updateExtensionEnabled(enabled: boolean) {
     const settings = await getSettings();
-    await saveSettings({ ...settings, extensionEnabled: enabled });
+    const nextSettings = {
+      ...settings,
+      extensionEnabled: enabled,
+      autoTranslate: enabled ? false : settings.autoTranslate,
+    };
+    await saveSettings(nextSettings);
     await updateActionState(enabled);
     setExtensionEnabled(enabled);
+    setAutoTranslate(nextSettings.autoTranslate);
     setProgress(null);
     setStatus(enabled ? 'idle' : 'success');
-    setMessage(enabled ? 'Auto-T resumed.' : 'Auto-T paused. Translation is stopped.');
+    setMessage(
+      enabled
+        ? 'Auto-T active. Use shortcuts or buttons to translate; auto visible is off.'
+        : 'Auto-T disabled. Manual and shortcut translation are stopped.',
+    );
   }
 
   return (
@@ -199,7 +209,7 @@ export function App() {
         onClick={() => updateExtensionEnabled(!extensionEnabled)}
         disabled={status === 'loading'}
       >
-        {extensionEnabled ? 'Pause translation' : 'Resume translation'}
+        {extensionEnabled ? 'Disable Auto-T' : 'Enable Auto-T'}
       </button>
 
       <section className="controls">

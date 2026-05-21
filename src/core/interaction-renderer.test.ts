@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { resolveHoverTarget } from '@/src/core/context-translation';
-import { INTERACTION_TRANSLATION_ATTR, renderInteractionTranslation } from '@/src/core/interaction-renderer';
+import {
+  INTERACTION_TRANSLATION_ATTR,
+  clearInteractionLoading,
+  renderInteractionLoading,
+  renderInteractionTranslation,
+} from '@/src/core/interaction-renderer';
 import { restorePage } from '@/src/core/restore';
 
 describe('renderInteractionTranslation', () => {
@@ -41,6 +46,20 @@ describe('renderInteractionTranslation', () => {
       translation: '上下文译文',
     });
     restorePage();
+
+    expect(document.querySelector(`[${INTERACTION_TRANSLATION_ATTR}="${target.segment.id}"]`)).toBeNull();
+  });
+
+  it('renders and clears interaction loading state', () => {
+    const target = makeTargetFromSource();
+
+    renderInteractionLoading(target);
+    const loading = document.querySelector<HTMLElement>(`[${INTERACTION_TRANSLATION_ATTR}="${target.segment.id}"]`);
+
+    expect(loading?.classList.contains('auto-t-translation-loading')).toBe(true);
+    expect(loading?.textContent).toContain('Translating...');
+
+    clearInteractionLoading(target);
 
     expect(document.querySelector(`[${INTERACTION_TRANSLATION_ATTR}="${target.segment.id}"]`)).toBeNull();
   });

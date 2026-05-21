@@ -65,6 +65,23 @@ describe('context translation target resolution', () => {
     expect(target?.contextSegments[0]?.text).toContain('Third sentence remains context');
   });
 
+  it('uses the full owner block sentence when the caret lands inside an inline word', () => {
+    document.body.innerHTML = `
+      <main>
+        <p id="hovered">First sentence is here. Second sentence has an <span id="word">inline</span> word. Third sentence remains context.</p>
+      </main>
+    `;
+    const textNode = document.getElementById('word')?.firstChild as Text;
+    window.getSelection()?.removeAllRanges();
+    mockCaret(textNode, 2);
+
+    const target = resolveHoverTarget({ x: 20, y: 20 });
+
+    expect(target?.translationKind).toBe('context-hover');
+    expect(target?.segment.text).toBe('Second sentence has an inline word.');
+  });
+
+
   it('falls back to the paragraph when sentence splitting cannot produce useful text', () => {
     document.body.innerHTML = `
       <main>

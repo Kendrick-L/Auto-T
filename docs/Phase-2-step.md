@@ -47,7 +47,7 @@ Improve translation quality and professional control after the Phase 1 webpage t
 - DeepSeek requests use the selected model, and cache keys include the selected model.
 - Inline code/path literals inside paragraphs are preserved in translated text while block code remains skipped.
 - DeepSeek response parsing handles common JSON wrappers, small punctuation mistakes, malformed entries, and alternate translation fields.
-- M3 interaction work has started on this branch: `Option+V` translates visible text, and `Option+T` translates selected text first or the hovered sentence/paragraph without automatic page-load/hover requests.
+- M3 interaction work has started on this branch: `Option+V` translates visible text, and `Option+T` translates selected text first or the hovered sentence/paragraph without automatic page-load/hover requests. Hover sentence detection now uses the full owner block instead of the inline word node, and context translation shows a loading state before the result arrives.
 
 ## Current Gaps
 
