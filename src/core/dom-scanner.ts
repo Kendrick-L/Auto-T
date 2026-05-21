@@ -7,6 +7,7 @@ export type PageSegment = {
   text: string;
   tagName: string;
   hash: string;
+  protectedLiterals?: string[];
 };
 
 export type ScanPageSegmentsOptions = {
@@ -42,14 +43,12 @@ const SEGMENT_BOUNDARY_SELECTOR = [
 ].join(',');
 
 const BLOCK_FALLBACK_SELECTOR = 'main,article,section,div';
+const INLINE_PROTECTED_SELECTOR = 'code,kbd,samp';
 const HARD_SKIP_SELECTOR = [
   'script',
   'style',
   'noscript',
-  'code',
   'pre',
-  'kbd',
-  'samp',
   'textarea',
   'input',
   'select',
@@ -67,19 +66,26 @@ const HARD_SKIP_SELECTOR = [
   '[role="contentinfo"]',
   `.${EXTENSION_TRANSLATION_CLASS}`,
 ].join(',');
+type CandidatePart = {
+  text: string;
+  protected: boolean;
+};
 
 export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSegment[] {
   const limit = options.limit ?? 80;
   const pageRule = getActivePageRule(options.pageUrl);
   const textNodes = collectTextNodes(options.viewportOnly ?? false, pageRule);
-  const candidates = new Map<HTMLElement, string[]>();
+  const candidates = new Map<HTMLElement, CandidatePart[]>();
 
   for (const node of textNodes) {
     const owner = findSegmentOwner(node, pageRule);
     if (!owner) continue;
 
     const parts = candidates.get(owner) ?? [];
-    parts.push(node.textContent ?? '');
+    parts.push({
+      text: node.textContent ?? '',
+      protected: isInlineProtectedTextNode(node),
+    });
     candidates.set(owner, parts);
   }
 
@@ -91,8 +97,10 @@ export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSeg
     if (!isVisible(element)) continue;
     if (options.viewportOnly && !isInViewport(element)) continue;
 
-    const text = normalizeText(parts.join(' '));
+    const text = normalizeText(parts.map((part) => part.text).join(' '));
+    const protectedLiterals = getProtectedLiterals(parts);
     if (!isUsefulText(text, element)) continue;
+    if (protectedLiterals.length > 0 && parts.every((part) => part.protected)) continue;
 
     const hash = stableTextHash(text);
     if (seen.has(hash)) continue;
@@ -106,6 +114,7 @@ export function scanPageSegments(options: ScanPageSegmentsOptions = {}): PageSeg
       text,
       tagName: element.tagName.toLowerCase(),
       hash,
+      ...(protectedLiterals.length ? { protectedLiterals } : {}),
     });
   }
 
@@ -174,6 +183,22 @@ function shouldSkipElement(element: HTMLElement, pageRule: ReturnType<typeof get
 
   const ruleExcludeSelector = getRuleExcludeSelector(pageRule);
   return Boolean(ruleExcludeSelector && element.closest(ruleExcludeSelector));
+}
+
+function isInlineProtectedTextNode(node: Text) {
+  const parent = node.parentElement;
+  return Boolean(parent?.closest(INLINE_PROTECTED_SELECTOR));
+}
+
+function getProtectedLiterals(parts: CandidatePart[]) {
+  return [
+    ...new Set(
+      parts
+        .filter((part) => part.protected)
+        .map((part) => normalizeText(part.text))
+        .filter(Boolean),
+    ),
+  ];
 }
 
 function normalizeText(text: string) {

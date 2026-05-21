@@ -28,6 +28,7 @@ Improve translation quality and professional control after the Phase 1 webpage t
 | Nearby context prompt | Done | `agent/m1/debug-segment-console` | Adds nearby scanned segments to each DeepSeek batch prompt without sending the full page. |
 | Cache management UI and helpers | Done | `agent/m1/debug-segment-console` | Options can show cache count and clear all cached translations. Popup identifies the active http/https hostname and can clear cached entries for the current site. |
 | DeepSeek model selector | Done | `agent/m1/debug-segment-console` | Options can choose `deepseek-chat` or `deepseek-reasoner`; the selected model is used in DeepSeek requests and separated in cache keys. |
+| Protected inline literals | Done | `agent/m1/debug-segment-console` | Inline `code`, `kbd`, and `samp` literals inside paragraph text are sent as protected placeholders and restored into translations unchanged. |
 
 ## Completed Capabilities
 
@@ -43,6 +44,7 @@ Improve translation quality and professional control after the Phase 1 webpage t
 - Popup includes current-site cache status and `Clear site` for active http/https tabs.
 - Options includes a DeepSeek model selector for `deepseek-chat` and `deepseek-reasoner`.
 - DeepSeek requests use the selected model, and cache keys include the selected model.
+- Inline code/path literals inside paragraphs are preserved in translated text while block code remains skipped.
 
 ## Current Gaps
 

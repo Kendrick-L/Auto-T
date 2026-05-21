@@ -28,6 +28,25 @@ describe('buildTranslationPrompt', () => {
     expect(prompt).toContain('Use precise technical terminology');
     expect(prompt).toContain('Treat the page as product or SaaS documentation');
   });
+
+  it('sends protected inline literals as placeholders', () => {
+    const prompt = buildTranslationPrompt({
+      ...makeRequest(),
+      segments: [
+        {
+          id: 'segment-1',
+          text: 'Hermes snapshots ~/.hermes/skills/ before each pass.',
+          tagName: 'p',
+          hash: 'abc',
+          protectedLiterals: ['~/.hermes/skills/'],
+        },
+      ],
+    });
+
+    expect(prompt).toContain('Protected literals:');
+    expect(prompt).toContain('segment-1: [[AUTO_T_LITERAL_1]] = ~/.hermes/skills/');
+    expect(prompt).toContain('"text":"Hermes snapshots [[AUTO_T_LITERAL_1]] before each pass."');
+  });
 });
 
 function makeRequest(

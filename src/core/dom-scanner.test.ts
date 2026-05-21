@@ -95,6 +95,28 @@ describe('scanPageSegments', () => {
     expect(texts.join(' ')).not.toContain('navigation item');
     expect(texts.join(' ')).not.toContain('const ignored');
   });
+
+  it('keeps inline code inside paragraph text as protected literals', () => {
+    document.body.innerHTML = `
+      <main>
+        <p>
+          Before every curator pass, Hermes snapshots <code>~/.hermes/skills/</code>
+          into <code>~/.hermes/skills/.curator_backups/&lt;utc-iso&gt;/skills.tar.gz</code>.
+        </p>
+        <code>const ignored = true;</code>
+      </main>
+    `;
+
+    const segments = scanPageSegments({ limit: 20, pageUrl: 'https://example.com/docs' });
+
+    expect(segments).toHaveLength(1);
+    expect(segments[0]?.text).toContain('~/.hermes/skills/');
+    expect(segments[0]?.text).toContain('~/.hermes/skills/.curator_backups/<utc-iso>/skills.tar.gz');
+    expect(segments[0]?.protectedLiterals).toEqual([
+      '~/.hermes/skills/',
+      '~/.hermes/skills/.curator_backups/<utc-iso>/skills.tar.gz',
+    ]);
+  });
 });
 
 function getDisplay(element: HTMLElement) {

@@ -106,7 +106,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.23`.
+Current version: `0.1.24`.
 
 ## Configure DeepSeek
 
@@ -359,6 +359,17 @@ Current behavior:
 - Does not send the full page as context.
 - Uses nearby context only as guidance; the model is instructed to translate only the requested input segments.
 - Includes a context fingerprint in the cache key so unrelated pages do not reuse stale context-aware translations.
+
+## Protected Inline Code
+
+Inline code such as file paths, shell snippets, keyboard-like literals, and package identifiers inside normal paragraphs is preserved as original text in translations.
+
+Current behavior:
+
+- Inline `<code>`, `<kbd>`, and `<samp>` text is included in the surrounding paragraph scan.
+- Auto-T sends protected placeholders to DeepSeek and restores the original inline literal after parsing the response.
+- Block code under `<pre>` is still skipped to avoid translating full code samples.
+- Preserved inline code currently renders as plain text inside the translation, not as a styled code pill.
 
 ## Glossary
 

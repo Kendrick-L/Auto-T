@@ -1,4 +1,5 @@
 import type { TranslateRequest } from '@/src/translation/types';
+import { getProtectedLiteralPlaceholders, protectSegmentText } from '@/src/translation/protected-literals';
 
 const MODE_INSTRUCTIONS = {
   normal: 'Use natural, faithful, fluent translation.',
@@ -34,6 +35,7 @@ export function buildTranslationPrompt(request: TranslateRequest) {
         })),
       )
     : 'None';
+  const protectedLiteralText = buildProtectedLiteralText(request);
 
   return [
     'You are a professional bilingual webpage translation engine.',
@@ -50,6 +52,7 @@ export function buildTranslationPrompt(request: TranslateRequest) {
     '4. Return valid JSON only, with the exact shape: {"segments":[{"id":"...","translation":"..."}]}.',
     '5. Keep the output segment order identical to the input order.',
     '6. Use nearby page context only to improve consistency; do not translate context-only text unless it appears in input segments.',
+    '7. Keep protected literal placeholders exactly unchanged in translations.',
     '',
     'Glossary:',
     glossaryText,
@@ -57,12 +60,25 @@ export function buildTranslationPrompt(request: TranslateRequest) {
     'Nearby page context:',
     contextText,
     '',
+    'Protected literals:',
+    protectedLiteralText,
+    '',
     'Input segments:',
     JSON.stringify(
       request.segments.map((segment) => ({
         id: segment.id,
-        text: segment.text,
+        text: protectSegmentText(segment),
       })),
     ),
   ].join('\n');
+}
+
+function buildProtectedLiteralText(request: TranslateRequest) {
+  const lines = request.segments.flatMap((segment) =>
+    getProtectedLiteralPlaceholders(segment).map(
+      (literal) => `- ${segment.id}: ${literal.placeholder} = ${literal.text}`,
+    ),
+  );
+
+  return lines.length ? lines.join('\n') : 'None';
 }

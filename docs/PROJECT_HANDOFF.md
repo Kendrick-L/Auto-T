@@ -11,8 +11,8 @@ Auto-T is a Chrome MV3 bilingual webpage translation extension powered by DeepSe
 - Repository: `git@github.com:Kendrick-L/Auto-T.git`
 - Working directory: `/Users/lvtong/Documents/Practice/Auto-T`
 - Current branch: `agent/m1/debug-segment-console`
-- Latest pushed commit before DeepSeek model selector work: `0f5cfe7 feat: add current site cache cleanup`
-- Current package version in working tree: `0.1.23`
+- Latest pushed commit before protected inline literal work: `690348d feat: add deepseek model selector`
+- Current package version in working tree: `0.1.24`
 
 Important: run this first in any new window:
 
@@ -79,6 +79,7 @@ Completed:
 - Popup identifies the active http/https hostname and can clear current-site cache entries.
 - DeepSeek model selector supports `deepseek-chat` and `deepseek-reasoner`.
 - DeepSeek model is included in the translation cache key.
+- Inline `code`, `kbd`, and `samp` literals inside paragraph text are protected with placeholders and restored unchanged in translations.
 
 Phase 2 current docs:
 

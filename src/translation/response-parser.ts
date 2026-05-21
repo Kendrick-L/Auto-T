@@ -1,17 +1,19 @@
 import type { PageSegment } from '@/src/core/dom-scanner';
 import type { TranslatedSegment } from '@/src/translation/types';
+import { restoreProtectedLiterals } from '@/src/translation/protected-literals';
 
 export function parseTranslationResponse(content: string, sourceSegments: PageSegment[]): TranslatedSegment[] {
   const json = extractJson(content);
   const parsed = parseSegments(parseJsonWithRepair(json));
   const sourceById = new Map(sourceSegments.map((segment) => [segment.id, segment.text]));
+  const segmentById = new Map(sourceSegments.map((segment) => [segment.id, segment]));
 
   return parsed.segments
     .filter((segment) => sourceById.has(segment.id))
     .map((segment) => ({
       id: segment.id,
       source: sourceById.get(segment.id) ?? '',
-      translation: segment.translation,
+      translation: restoreProtectedLiterals(segment.translation, segmentById.get(segment.id)),
     }));
 }
 
