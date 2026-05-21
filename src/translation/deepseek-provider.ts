@@ -59,21 +59,7 @@ async function requestDeepSeek(request: TranslateRequest, apiKey: string) {
             Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            model: 'deepseek-chat',
-            temperature: 0.2,
-            response_format: { type: 'json_object' },
-            messages: [
-              {
-                role: 'system',
-                content: 'Return valid JSON only. You are a translation engine, not a chatbot.',
-              },
-              {
-                role: 'user',
-                content: buildTranslationPrompt(request),
-              },
-            ],
-          }),
+          body: JSON.stringify(buildDeepSeekRequestBody(request)),
         },
         REQUEST_TIMEOUT_MS,
       );
@@ -92,6 +78,24 @@ async function requestDeepSeek(request: TranslateRequest, apiKey: string) {
   }
 
   throw lastError instanceof Error ? lastError : new Error('DeepSeek request failed.');
+}
+
+export function buildDeepSeekRequestBody(request: TranslateRequest) {
+  return {
+    model: request.settings.deepseekModel,
+    ...(request.settings.deepseekModel === 'deepseek-chat' ? { temperature: 0.2 } : {}),
+    response_format: { type: 'json_object' },
+    messages: [
+      {
+        role: 'system',
+        content: 'Return valid JSON only. You are a translation engine, not a chatbot.',
+      },
+      {
+        role: 'user',
+        content: buildTranslationPrompt(request),
+      },
+    ],
+  };
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {

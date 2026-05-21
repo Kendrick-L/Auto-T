@@ -106,7 +106,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.22`.
+Current version: `0.1.23`.
 
 ## Configure DeepSeek
 
@@ -131,13 +131,18 @@ Option B: Options page override:
 1. Open the Auto-T popup.
 2. Click Settings.
 3. Enter your DeepSeek API Key.
-4. Choose source language, target language, translation mode, and display mode.
+4. Choose DeepSeek model, source language, target language, translation mode, and display mode.
 5. Save settings.
 
 Priority:
 
 1. Options page key.
 2. `.env` key bundled at build time.
+
+Default model:
+
+- `deepseek-chat` is the default.
+- `deepseek-reasoner` can be selected for reasoning-heavy translation checks, but may be slower and use more tokens.
 
 Important:
 
@@ -300,6 +305,17 @@ Turn debug logging off after diagnosis, especially on private pages.
 `Academic`:
 
 - Uses more formal language and preserves citations, numbers, formulas, and named entities.
+
+## DeepSeek Models
+
+The selected DeepSeek model is sent with each translation request and is part of the cache key. Changing models can produce different translations for the same text, so Auto-T keeps those cached results separate.
+
+Available models:
+
+- `deepseek-chat`: default chat model for normal translation.
+- `deepseek-reasoner`: optional reasoning model for harder passages; Auto-T omits chat temperature for this model.
+
+DeepSeek docs currently list `deepseek-chat` and `deepseek-reasoner` as compatibility names with a planned deprecation date. Revisit model names before publishing a long-lived build.
 
 ## Domain Profiles
 

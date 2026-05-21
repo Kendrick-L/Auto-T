@@ -40,22 +40,23 @@ Phase 2 已完成：
 - Options 可查看缓存数量并清理全部缓存
 - Popup 可识别当前 http/https hostname 并清理当前站点缓存
 - Popup 可 Pause/Resume 翻译，Chrome toolbar 有 active/paused icon 和 OFF badge
+- DeepSeek model selector 支持 `deepseek-chat` / `deepseek-reasoner`，并进入 cache key
 
 下一步推荐任务：
-实现 domain/page glossary support，或做 glossary import/export / DeepSeek model selector。
+实现 Response parser / JSON repair fallback。Glossary 相关优先级已调低，当前没有配置化需求。
 
 建议范围：
-- 先设计 glossary scope：global、domain、page 的存储和 prompt 合并顺序
-- 如做 import/export，优先使用 JSON，保持 schema 简洁
-- 如做 model selector，默认仍为 `deepseek-chat`，reasoner 等非默认模型需文档说明
+- 增强 `src/translation/response-parser.ts`
+- 覆盖模型返回代码块、JSON 前后废话、缺失字段、非 string 字段等情况
+- 保持测试离线，不消耗 DeepSeek API quota
 - 更新文档：
   - docs/Phase-2-step.md
   - docs/USAGE.md
   - ITERATION_PLAN.md
   - 如接手状态变化，更新 docs/PROJECT_HANDOFF.md
 - 添加测试：
-  - glossary scope 合并顺序或 import/export 行为
-  - 如影响 cache key，确认旧缓存不会误命中
+  - parser fixture 覆盖常见坏 JSON 包装
+  - 失败恢复不能导致整批翻译丢失
 
 约束：
 - 不要消耗 DeepSeek API quota，除非用户明确允许。

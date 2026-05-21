@@ -11,8 +11,8 @@ Auto-T is a Chrome MV3 bilingual webpage translation extension powered by DeepSe
 - Repository: `git@github.com:Kendrick-L/Auto-T.git`
 - Working directory: `/Users/lvtong/Documents/Practice/Auto-T`
 - Current branch: `agent/m1/debug-segment-console`
-- Latest pushed commit before current-site cache work: `7bb97c0 feat: add cache management controls`
-- Current package version in working tree: `0.1.22`
+- Latest pushed commit before DeepSeek model selector work: `0f5cfe7 feat: add current site cache cleanup`
+- Current package version in working tree: `0.1.23`
 
 Important: run this first in any new window:
 
@@ -77,6 +77,8 @@ Completed:
 - Options shows translation cache count and can clear all local cache entries.
 - Cache storage helpers support stats, clearing all cache, and clearing entries by recorded hostname for newly saved cache entries.
 - Popup identifies the active http/https hostname and can clear current-site cache entries.
+- DeepSeek model selector supports `deepseek-chat` and `deepseek-reasoner`.
+- DeepSeek model is included in the translation cache key.
 
 Phase 2 current docs:
 
@@ -86,13 +88,13 @@ docs/Phase-2-step.md
 
 ## Recommended Next Phase 2 Task
 
-Continue with domain/page glossary support, glossary import/export, or DeepSeek model selection.
+Continue with response parser / JSON repair fallback, then record a small quality benchmark if API quota is allowed.
 
 Expected scope:
 
-- Decide whether domain/page glossary should be stored by hostname, URL, or explicit user scope.
-- Add import/export controls if glossary editing remains local-only.
-- Add or update tests for glossary versioning and cache invalidation.
+- Add parser fixtures for code fences, prose before/after JSON, missing fields, and non-string values.
+- Keep tests offline; do not call DeepSeek.
+- Update docs with parser behavior and remaining limitations.
 - Update docs:
   - `docs/Phase-2-step.md`
   - `docs/USAGE.md`

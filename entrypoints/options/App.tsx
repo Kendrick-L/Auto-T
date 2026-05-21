@@ -87,6 +87,20 @@ export function App() {
         </label>
 
         <label>
+          DeepSeek model
+          <select
+            value={settings.deepseekModel}
+            onChange={(event) =>
+              setSettings({ ...settings, deepseekModel: event.target.value as UserSettings['deepseekModel'] })
+            }
+          >
+            <option value="deepseek-chat">deepseek-chat</option>
+            <option value="deepseek-reasoner">deepseek-reasoner</option>
+          </select>
+          <small>Changing models keeps cache entries separate. Reasoner may be slower and use more tokens.</small>
+        </label>
+
+        <label>
           Source language
           <select
             value={settings.sourceLang}
@@ -226,8 +240,7 @@ export function App() {
           </button>
         </div>
         <p className="cache-note">
-          Current-site cache clearing is supported in storage helpers and will be wired once the translated page hostname
-          can be identified safely from the UI.
+          Current-site cache clearing is available from the popup on active http and https pages.
         </p>
         {cacheMessage ? <p className="saved">{cacheMessage}</p> : null}
       </section>

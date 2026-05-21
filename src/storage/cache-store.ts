@@ -134,6 +134,7 @@ function getCacheKey(
     settings.targetLang,
     settings.sourceLang,
     settings.mode,
+    settings.deepseekModel,
     settings.domainProfile,
     stableTextHash(glossaryVersion),
     stableTextHash(contextVersion),

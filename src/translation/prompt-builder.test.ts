@@ -47,6 +47,7 @@ function makeRequest(
     settings: {
       extensionEnabled: true,
       deepseekApiKey: '',
+      deepseekModel: 'deepseek-chat',
       targetLang: 'zh-CN',
       sourceLang: 'auto',
       mode: 'normal',

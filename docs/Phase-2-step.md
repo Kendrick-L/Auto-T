@@ -27,6 +27,7 @@ Improve translation quality and professional control after the Phase 1 webpage t
 | Domain profile prompt | Done | `agent/m1/debug-segment-console` | Adds a specialized domain profile setting for general, technical docs, legal, medical, finance, and product documentation. |
 | Nearby context prompt | Done | `agent/m1/debug-segment-console` | Adds nearby scanned segments to each DeepSeek batch prompt without sending the full page. |
 | Cache management UI and helpers | Done | `agent/m1/debug-segment-console` | Options can show cache count and clear all cached translations. Popup identifies the active http/https hostname and can clear cached entries for the current site. |
+| DeepSeek model selector | Done | `agent/m1/debug-segment-console` | Options can choose `deepseek-chat` or `deepseek-reasoner`; the selected model is used in DeepSeek requests and separated in cache keys. |
 
 ## Completed Capabilities
 
@@ -40,13 +41,15 @@ Improve translation quality and professional control after the Phase 1 webpage t
 - Translation cache entries record the source hostname for new saves.
 - Storage helpers support cache stats, clearing all cache, and clearing cache entries for a recorded hostname.
 - Popup includes current-site cache status and `Clear site` for active http/https tabs.
+- Options includes a DeepSeek model selector for `deepseek-chat` and `deepseek-reasoner`.
+- DeepSeek requests use the selected model, and cache keys include the selected model.
 
 ## Current Gaps
 
 - No generated page-level summary yet; current context is nearby scanned segments only.
 - No domain-level or page-level glossary yet.
 - No glossary import/export yet.
-- No DeepSeek model selector yet.
+- DeepSeek compatibility model names should be revisited before their planned upstream deprecation date.
 - No manual quality benchmark recorded across GitHub, MDN, Wikipedia, and news pages.
 
 ## Acceptance Checklist For Phase 2
@@ -60,13 +63,13 @@ Improve translation quality and professional control after the Phase 1 webpage t
 - [x] Cache can be inspected and cleared globally from Options.
 - [x] Cache storage helper can clear entries by recorded hostname.
 - [x] Current-site cache clearing is available from the popup for active http/https tabs.
+- [x] DeepSeek model can be configured.
 - [ ] Domain/page glossary supported.
-- [ ] DeepSeek model can be configured.
 - [ ] Quality smoke results recorded for representative pages.
 
 ## Next Recommended Step
 
-Continue with domain/page glossary support, glossary import/export, or DeepSeek model selection.
+Continue with response parser / JSON repair fallback, then record a small quality benchmark if API quota is allowed.
 
 ## New Window Handoff
 

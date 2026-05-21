@@ -3,6 +3,7 @@ import { getBundledDeepSeekApiKey } from '@/src/config/env';
 export type UserSettings = {
   extensionEnabled: boolean;
   deepseekApiKey: string;
+  deepseekModel: 'deepseek-chat' | 'deepseek-reasoner';
   targetLang: 'zh-CN' | 'en' | 'ja' | 'ko';
   sourceLang: 'auto' | 'en' | 'zh-CN' | 'ja' | 'ko';
   mode: 'normal' | 'technical' | 'academic';
@@ -18,6 +19,7 @@ const SETTINGS_KEY = 'autoTSettings';
 export const DEFAULT_SETTINGS: UserSettings = {
   extensionEnabled: true,
   deepseekApiKey: '',
+  deepseekModel: 'deepseek-chat',
   targetLang: 'zh-CN',
   sourceLang: 'auto',
   mode: 'normal',

@@ -73,6 +73,28 @@ describe('translation cache store', () => {
     });
   });
 
+  it('keeps cache entries separate for different DeepSeek models', async () => {
+    await saveCachedTranslations(
+      [
+        {
+          id: 'segment-1',
+          source: 'Model-specific cached text.',
+          translation: '聊天模型译文。',
+        },
+      ],
+      { ...DEFAULT_SETTINGS, deepseekModel: 'deepseek-chat' },
+      'glossary-v1',
+    );
+
+    await expect(
+      getCachedTranslation(
+        { id: 'reasoner-id', text: 'Model-specific cached text.', tagName: 'p', hash: 'hash' },
+        { ...DEFAULT_SETTINGS, deepseekModel: 'deepseek-reasoner' },
+        'glossary-v1',
+      ),
+    ).resolves.toBeNull();
+  });
+
   it('clears cached translations for one hostname without touching other sites', async () => {
     await saveCachedTranslations(
       [{ id: 'segment-1', source: 'First page text.', translation: '第一页文本。' }],
