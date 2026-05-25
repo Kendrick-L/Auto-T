@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { resolveHoverTarget } from '@/src/core/context-translation';
 import {
   INTERACTION_TRANSLATION_ATTR,
+  clearInteractionTranslationsForAnchor,
   clearInteractionTranslations,
   clearInteractionLoading,
   hasInteractionTranslation,
@@ -127,6 +128,34 @@ describe('renderInteractionTranslation', () => {
     });
     clearInteractionTranslations();
     expect(hasInteractionTranslation(target.segment.id)).toBe(false);
+  });
+
+  it('clears other interaction translations attached to the same anchor', () => {
+    const first = makeTargetFromSource();
+    const second = {
+      ...first,
+      segment: {
+        ...first.segment,
+        id: 'interaction-2',
+        text: 'A selected word',
+      },
+    };
+
+    renderInteractionTranslation(first, {
+      id: first.segment.id,
+      source: first.segment.text,
+      translation: '整句译文',
+    });
+    renderInteractionTranslation(second, {
+      id: second.segment.id,
+      source: second.segment.text,
+      translation: '选区译文',
+    });
+
+    clearInteractionTranslationsForAnchor(second.anchor, second.segment.id);
+
+    expect(hasInteractionTranslation(first.segment.id)).toBe(false);
+    expect(hasInteractionTranslation(second.segment.id)).toBe(true);
   });
 });
 

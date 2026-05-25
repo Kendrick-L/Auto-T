@@ -109,7 +109,7 @@ After each update, run `npm run build`, then click Reload on the Auto-T extensio
 
 Refresh already-open webpages after reloading the extension. Chrome invalidates old content-script contexts during extension reloads, so old tabs cannot safely keep using the previous script instance.
 
-Current version: `0.1.29`.
+Current version: `0.1.30`.
 
 ## Configure DeepSeek
 
@@ -228,6 +228,8 @@ Default shortcuts:
 The context shortcut supports a selected word, phrase, sentence, or paragraph. For selected short text, Auto-T sends the surrounding paragraph as context so DeepSeek can choose the current in-page meaning.
 
 Context translations are inserted as a compact readable block with extra spacing. Table-cell translations stay inside the target cell so table layout remains valid, and compact sources such as buttons use roomier block styling below the source. They use the same loading state pattern as regular page translations.
+
+Selection always takes priority for `Option+T`. If a hover translation already exists on the same source block and you select a word or sentence there, Auto-T removes the older hover interaction before translating the selection so the page does not show two interaction translations for the same source.
 
 Repeating `Option+T` on the same target toggles the interaction translation off without sending a new DeepSeek request. Running `Option+V` clears existing `Option+T` interaction translations first so the visible-area translation remains the single source of page translation. `Restore` removes both normal page translations and context shortcut translations.
 

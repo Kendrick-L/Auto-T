@@ -77,6 +77,16 @@ export function removeInteractionTranslation(segmentId: string) {
   getInteractionNode(segmentId)?.remove();
 }
 
+export function clearInteractionTranslationsForAnchor(anchor: HTMLElement, exceptSegmentId?: string) {
+  const nodes = Array.from(document.querySelectorAll<HTMLElement>(`.${INTERACTION_TRANSLATION_CLASS}`));
+  for (const node of nodes) {
+    if (exceptSegmentId && node.getAttribute(INTERACTION_TRANSLATION_ATTR) === exceptSegmentId) continue;
+    if (isInteractionNodeForAnchor(node, anchor)) {
+      node.remove();
+    }
+  }
+}
+
 export function clearInteractionTranslations() {
   document.querySelectorAll(`.${INTERACTION_TRANSLATION_CLASS}`).forEach((node) => node.remove());
 }
@@ -120,6 +130,19 @@ function createInteractionNode(segmentId: string) {
 
 function getInteractionNode(segmentId: string) {
   return document.querySelector<HTMLElement>(`[${INTERACTION_TRANSLATION_ATTR}="${CSS.escape(segmentId)}"]`);
+}
+
+function isInteractionNodeForAnchor(node: HTMLElement, anchor: HTMLElement) {
+  if (node.parentElement === anchor.closest(TABLE_CELL_SELECTOR)) return true;
+  return findPreviousNonInteractionSibling(node) === anchor;
+}
+
+function findPreviousNonInteractionSibling(node: HTMLElement) {
+  let sibling = node.previousElementSibling;
+  while (sibling?.classList.contains(INTERACTION_TRANSLATION_CLASS)) {
+    sibling = sibling.previousElementSibling;
+  }
+  return sibling;
 }
 
 function setInteractionText(node: HTMLElement, text: string) {

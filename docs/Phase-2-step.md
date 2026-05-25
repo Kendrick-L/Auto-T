@@ -49,7 +49,7 @@ Improve translation quality and professional control after the Phase 1 webpage t
 - Chinese source pages are detected by document language and source text heuristics and skipped when the target language is Chinese.
 - Inline code/path literals inside paragraphs are preserved in translated text while block code remains skipped.
 - DeepSeek response parsing handles common JSON wrappers, small punctuation mistakes, malformed entries, and alternate translation fields.
-- M3 interaction work has started on this branch: `Option+V` translates visible text, and `Option+T` translates selected text first or the hovered sentence/paragraph without automatic page-load/hover requests. Hover sentence detection now uses the full owner block instead of the inline word node, inline `code`/`kbd`/`samp` literals are protected, and context translation shows a loading state before the result arrives. Repeating `Option+T` on the same target toggles its interaction translation off; `Option+V` clears existing interaction translations first.
+- M3 interaction work has started on this branch: `Option+V` translates visible text, and `Option+T` translates selected text first or the hovered sentence/paragraph without automatic page-load/hover requests. Hover sentence detection now uses the full owner block instead of the inline word node, inline `code`/`kbd`/`samp` literals are protected, and context translation shows a loading state before the result arrives. Repeating `Option+T` on the same target toggles its interaction translation off; selecting text in a block with an existing hover translation removes the older interaction first; `Option+V` clears existing interaction translations before visible-area translation.
 
 ## Current Gaps
 

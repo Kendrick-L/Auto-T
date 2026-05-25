@@ -5,6 +5,7 @@ import {
   resolveContextTranslationTarget,
 } from '@/src/core/context-translation';
 import {
+  clearInteractionTranslationsForAnchor,
   clearInteractionTranslations,
   clearInteractionLoading,
   hasInteractionTranslation,
@@ -251,6 +252,13 @@ async function translateContext(): Promise<ExtensionResponse> {
     removeInteractionTranslation(target.segment.id);
     interactionTargets.delete(target.segment.id);
     return { ok: true, data: { segments: [], toggled: 'interaction-off' } };
+  }
+
+  clearInteractionTranslationsForAnchor(target.anchor, target.segment.id);
+  for (const [segmentId, existingTarget] of interactionTargets) {
+    if (existingTarget.anchor === target.anchor && segmentId !== target.segment.id) {
+      interactionTargets.delete(segmentId);
+    }
   }
 
   interactionTargets.set(target.segment.id, target);
